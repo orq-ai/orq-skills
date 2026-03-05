@@ -1,0 +1,58 @@
+{
+  "name": "@orq-ai/setup",
+  "version": "0.1.0",
+  "description": "Interactive CLI installer for orq.ai eval skills",
+  "type": "module",
+  "bin": {
+    "orq-setup": "./dist/bin/setup.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/bin/setup.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "orq",
+    "orq-ai",
+    "eval",
+    "llm",
+    "skills",
+    "agents",
+    "setup",
+    "cli"
+  ],
+  "author": "orq.ai",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orq-ai/orq-skills"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.10.0",
+    "commander": "^13.1.0",
+    "execa": "^9.5.2",
+    "picocolors": "^1.1.1",
+    "which": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@types/which": "^3.0.4",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "tsup": {
+    "entry": ["src/index.ts", "bin/setup.ts"],
+    "format": ["esm"],
+    "target": "node20",
+    "clean": true,
+    "splitting": true,
+    "shims": true,
+    "banner": {
+      "js": ""
+    }
+  }
+}

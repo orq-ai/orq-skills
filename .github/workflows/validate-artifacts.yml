@@ -1,0 +1,25 @@
+name: Validate generated artifacts
+
+on:
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "**/SKILL.md"
+      - "README.md"
+      - ".claude-plugin/**"
+      - ".cursor-plugin/**"
+      - ".mcp.json"
+      - "gemini-extension.json"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Ensure generated files are up to date
+        run: ./scripts/publish.sh --check

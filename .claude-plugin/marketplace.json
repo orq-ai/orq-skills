@@ -1,0 +1,19 @@
+{
+  "name": "orq-ai-plugins",
+  "owner": {
+    "name": "orq.ai",
+    "email": "support@orq.ai"
+  },
+  "metadata": {
+    "description": "orq.ai plugins for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "orq",
+      "source": "./",
+      "description": "Claude Code skills for systematically evaluating, debugging, and improving LLM pipelines on the orq.ai platform.",
+      "version": "0.1.0",
+      "keywords": ["evals", "llm", "evaluation", "orq", "agents", "rag", "experiments", "traces", "knowledge-base"]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "orq": {
+      "url": "https://my.orq.ai/v2/mcp"
+    }
+  }
+}

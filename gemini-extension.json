@@ -1,0 +1,11 @@
+{
+  "name": "orq-skills",
+  "description": "Skills for systematically evaluating, debugging, and improving LLM pipelines on the orq.ai platform.",
+  "version": "0.1.0",
+  "contextFileName": "agents/AGENTS.md",
+  "mcpServers": {
+    "orq": {
+      "httpUrl": "https://my.orq.ai/v2/mcp"
+    }
+  }
+}

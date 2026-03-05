@@ -1,0 +1,27 @@
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE / Editors
+.vscode/
+.idea/
+*.iml
+
+# AI Assistants
+.claude/
+.cursor/
+.windsurf/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
+desktop.ini
+
+# CLI build artifacts
+cli/node_modules/
+cli/dist/

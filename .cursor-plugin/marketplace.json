@@ -1,0 +1,10 @@
+{
+  "plugins": [
+    {
+      "name": "orq",
+      "source": ".",
+      "skills": "skills",
+      "description": "Agent skills for building, deploying, evaluating, and monitoring LLM pipelines on the orq.ai platform."
+    }
+  ]
+}
