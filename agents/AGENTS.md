@@ -14,6 +14,7 @@ These skills are:
  - evaluate-rag -> "skills/evaluate-rag/SKILL.md"
  - feedback-loop -> "skills/feedback-loop/SKILL.md"
  - generate-synthetic-dataset -> "skills/generate-synthetic-dataset/SKILL.md"
+ - generate-synthetic-dataset-v2 -> "skills/generate-synthetic-dataset-v2/SKILL.md"
  - knowledge-base -> "skills/knowledge-base/SKILL.md"
  - list-models -> "skills/list-models/SKILL.md"
  - manage-deployment -> "skills/manage-deployment/SKILL.md"
@@ -24,6 +25,7 @@ These skills are:
  - run-experiment -> "skills/run-experiment/SKILL.md"
  - scaffold-integration -> "skills/scaffold-integration/SKILL.md"
  - setup-ci-eval -> "skills/setup-ci-eval/SKILL.md"
+ - system-prompt-optimizer -> "skills/system-prompt-optimizer/SKILL.md"
  - trace-analysis -> "skills/trace-analysis/SKILL.md"
 
 IMPORTANT: You MUST read the SKILL.md file whenever the description of the skills matches the user intent, or may help accomplish their task.
@@ -41,6 +43,7 @@ evaluate-conversation: `Evaluate multi-turn conversation quality with session-le
 evaluate-rag: `Evaluate RAG pipelines by separately measuring retrieval quality and generation faithfulness`
 feedback-loop: `Set up and analyze user feedback collection to drive data-informed improvement cycles`
 generate-synthetic-dataset: `Generate structured, diverse evaluation datasets using the dimensions-tuples-natural language method`
+generate-synthetic-dataset-v2: `Deployment-based synthetic data generation — create datasets from descriptions or expand existing datasets with few-shot examples`
 knowledge-base: `Manage orq.ai Knowledge Bases — create, configure, upload files, chunk content, search, and maintain RAG data sources via API`
 list-models: `List available models and systematically compare them on cost, latency, and quality to find the optimal choice for your use case`
 manage-deployment: `Configure, version, and manage orq.ai deployments — model selection, prompt linking, fallbacks, caching, and guardrails`
@@ -51,6 +54,7 @@ regression-test: `Run a quick regression check against a golden dataset to verif
 run-experiment: `End-to-end LLM evaluation workflow — error analysis, dataset creation, experiment execution, result analysis, and ticket filing`
 scaffold-integration: `Generate SDK integration code (Python or Node) for orq.ai agents, deployments, and knowledge bases in the user's codebase`
 setup-ci-eval: `Set up continuous evaluation in CI/CD pipelines that runs regression tests on every prompt or agent change`
+system-prompt-optimizer: `Automated prompt optimization using orq.ai's PO1 analyzer and PO2 rewriter deployments`
 trace-analysis: `Systematic trace reading and failure taxonomy building using open coding and axial coding`
 </available_skills>
 
