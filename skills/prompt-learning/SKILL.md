@@ -197,7 +197,7 @@ Follow these steps **in order**. Do NOT skip steps.
    - `FAILURE_EXAMPLES`: the f=10 sampled failures with normalized feedback
    - `POSITIVE_EXAMPLES`: the p=3 sampled positive traces
 
-7. **Execute the following meta-prompt** (send it to the LLM with the variables filled in):
+7. **Follow the meta-prompt process below** with the variables filled in from the collected data:
 
    ~~~
    You are a prompt engineer improving a prompt based on feedback from multiple examples.
@@ -261,7 +261,7 @@ Follow these steps **in order**. Do NOT skip steps.
    NOW PROCESS THE ACTUAL INPUT.
    ~~~
 
-8. **Collect the structured output** (sections A through F).
+8. **Produce the structured output** (sections A through F) from the analysis above.
 
 9. **Review the output** with the user:
    - Show the identified patterns and their frequency/severity
