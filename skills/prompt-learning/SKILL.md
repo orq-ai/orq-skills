@@ -150,8 +150,20 @@ Research-validated configuration (RES-205):
 
 | Model Tier | Recommendation |
 |------------|----------------|
-| Mid-tier (Gemini Flash, GPT-4o-mini) | Good candidate — room to improve |
-| Top-tier (GPT-4o, Claude Sonnet) | Skip — likely at ceiling (>4.5/5 baseline) |
+| Small (Claude Haiku, Gemini Flash) | Best candidate — +40% improvement observed |
+| Mid-tier (GPT-4o-mini) | Good candidate — room to improve |
+| Top-tier (GPT-4o, Claude Sonnet) | Skip — likely at ceiling (>4.5/5 baseline), -3% to -10% observed |
+
+**Model-specific optimal configs:**
+
+| Model Family | F | P | Iterations | Notes |
+|-------------|---|---|------------|-------|
+| Claude | 10 | 0 | 3 | Small models (Haiku) learn best |
+| Gemini | 15 | 0 | 1 | Higher failure count, single iteration |
+| GPT | 10-15 | 3-5 | 3 | Benefits from positive anchors unlike others |
+| Other / unknown | 10 | 0 | 1 | Conservative defaults; not experimentally validated — monitor closely |
+
+**Split model strategy (recommended):** Use a cheap model as the learner (the model being improved) and a powerful model as the generator (the model running the meta-prompt). RES-205 showed +20% win rate with split models vs +13% with same-model — the powerful generator produces better rules when analyzing a smaller model's failures.
 
 ## Steps
 
@@ -176,6 +188,7 @@ Follow these steps **in order**. Do NOT skip steps.
    - Collect at least 50 traces (more is better) from a meaningful time period
    - Separate into: negative feedback traces and positive feedback traces
    - Identify the feedback source: human (thumbs up/down, corrections, free-text) or AI evaluator scores
+   - **Prefer freetext feedback** when available — RES-205 showed +26.7% improvement from freetext vs +6.7% from categorical feedback. If the user only has thumbs up/down, recommend enriching with freetext explanations.
 
 4. **Verify sufficient data:**
    - Need at least f=10 failure traces to proceed
