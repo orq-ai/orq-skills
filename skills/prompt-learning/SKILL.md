@@ -1,12 +1,12 @@
 ---
 name: prompt-learning
-description: Automatically improve prompts by collecting feedback, generating "If [TRIGGER] then [ACTION]" rules via a meta-prompt, and validating with A/B experiments
+description: Automatically improve prompts by collecting feedback, generating "If [TRIGGER] then [ACTION]" rules via a meta-prompt, and validating with multi-judge experiments
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, Task, AskUserQuestion, mcp__linear-server__*, orq*
 ---
 
 # Prompt Learning
 
-Automatically improve prompts through feedback-driven rule generation. Collects human or AI feedback, normalizes it to a shared representation, generates targeted "If [TRIGGER] then [ACTION]" rules via a meta-prompt, and appends them to a `### LEARNED_RULES` section — then validates with A/B experiments.
+Automatically improve prompts through feedback-driven rule generation. Collects human or AI feedback, normalizes it to a shared representation, generates targeted "If [TRIGGER] then [ACTION]" rules via a meta-prompt, and appends them to a `### LEARNED_RULES` section — then validates with multi-judge experiments.
 
 This skill is **automated and feedback-driven**, distinct from `optimize-prompt` (which is manual/trace-driven). The pipeline is: Collect → Normalize → Meta-Prompt → Aggregate → Apply → Validate.
 
@@ -25,6 +25,14 @@ This skill is **automated and feedback-driven**, distinct from `optimize-prompt`
 - Action plan recommends feedback-driven prompt improvement
 - User wants to close the loop between feedback collection and prompt updates
 - User has evaluator scores and wants to turn failures into prompt rules
+- The target prompt serves a **focused domain** (email writing, code review, customer support, data extraction)
+
+## When NOT to use
+
+- **Broad/general tasks** — prompt learning shows 0% significant improvement on general helpfulness or open-ended chat (RES-205: 0/70 configs significant on MTBench helpfulness)
+- **Top-tier models already at ceiling** — models scoring >4.5/5 on baseline show no improvement (GPT-4o at 4.75/5 had zero gain)
+- **Without multi-judge validation** — single-judge evaluation overestimates improvement by 40-60%. If you cannot set up 3+ diverse judge models, results will be unreliable
+- Use `optimize-prompt` instead for manual, trace-driven refinement on any domain type
 
 ## orq.ai Documentation
 
@@ -83,20 +91,20 @@ curl -s -X POST https://my.orq.ai/v2/prompts/<ID>/versions \
 
 ## Core Principles
 
-### 1. Feedback Is Fuel, Not Truth
-Human and AI feedback use the **same core method** — only preprocessing differs. Normalize all feedback to a shared representation (verdict + severity + issue tags + explanation) before processing. Never trust a single piece of feedback in isolation.
+### 1. Focused Domains Only
+Prompt learning works on **narrow, well-defined tasks** (email writing, code review, customer support, data extraction). It does not work on broad/general helpfulness — RES-205 showed 0% significant improvement across 70 configurations on general helpfulness tasks. Always verify the target prompt serves a focused domain before proceeding.
 
-### 2. Only Recurring Patterns Get Rules
+### 2. Feedback Is Fuel, Not Truth
+Human and AI feedback use the **same core method** — only preprocessing differs. Normalize all feedback to a shared representation (verdict + severity + issue tags + expected behavior) before processing. Never trust a single piece of feedback in isolation.
+
+### 3. Only Recurring Patterns Get Rules
 Require 2+ occurrences of a pattern before generating a rule. One-off issues are noise, not signal. The meta-prompt explicitly skips single-occurrence patterns.
 
-### 3. Rules Are Additive, Never Destructive
+### 4. Rules Are Additive, Never Destructive
 Rules are appended to a `### LEARNED_RULES` section in the prompt. Never rewrite or remove existing prompt instructions. Rules augment the prompt — they don't replace it.
 
-### 4. Positive Anchors Prevent Regression
-Always include p=3 positive traces (regression anchors) in each meta-prompt batch. These ensure generated rules don't break what already works. Skipping anchors leads to over-correction.
-
-### 5. Validate Before Promoting
-Never deploy rules without running an A/B experiment. The validation experiment compares the prompt with rules against the baseline on the same dataset. No vibes-checking.
+### 5. Multi-Judge Validation Is Mandatory
+Never validate with a single judge model. Single-judge evaluation overestimates improvement by 40-60% (RES-205: single-judge showed +40%, multi-judge showed +6%). Always use 3+ diverse judge models for validation experiments.
 
 ## Issue Taxonomy
 
@@ -124,42 +132,58 @@ The following actions require explicit user confirmation via `AskUserQuestion` b
 
 ## Defaults
 
-> **Note:** These defaults are preliminary. RES-205 experiments are still running — values will be updated once results are final.
+Research-validated configuration (RES-205):
 
 | Parameter | Default | Range | Notes |
 |-----------|---------|-------|-------|
-| Failures per batch (f) | 10 | 5-15 | Representative sample, not exhaustive |
-| Positives per batch (p) | 3 | 2-5 | Regression anchors to prevent over-correction |
-| Iterations | 2 | 1-5 | 2 for GPT/Claude; up to 5 for Gemini (pending validation) |
+| Failures per batch (f) | 10 | 5-15 | f=10 is optimal; f=5 too few to find patterns |
+| Positives per batch (p) | 0 | 0-5 | P=0 outperforms P=3-5 on focused domains |
+| Iterations | 1 | 1-2 | 1 iteration gives best results; 2 for consistency. More causes prompt bloat |
 | Occurrence threshold | 2+ | — | One-offs are skipped |
 | Rules per iteration | 1-5 | — | Prioritized by frequency × severity |
 | Total rule cap | 10 | — | Across all iterations |
+| Validation judges | 3+ | 3-5 | Diverse models required; single-judge overestimates by 40-60% |
+
+**Expected effect size:** +0.4 to +0.9 on a 5-point scale for focused domains. Set expectations accordingly.
+
+**Model tier matters:**
+
+| Model Tier | Recommendation |
+|------------|----------------|
+| Mid-tier (Gemini Flash, GPT-4o-mini) | Good candidate — room to improve |
+| Top-tier (GPT-4o, Claude Sonnet) | Skip — likely at ceiling (>4.5/5 baseline) |
 
 ## Steps
 
 Follow these steps **in order**. Do NOT skip steps.
 
-### Phase 1: Identify Target and Collect Feedback (Collect)
+### Phase 1: Identify Target and Assess Feasibility
 
 1. **Identify the target prompt/deployment:**
    - Use `search_entities` with `type: "prompts"` to find the target prompt
    - Use HTTP API to get full prompt details including current version
    - Document: system message, user template, model, parameters
 
-2. **Collect feedback data:**
+2. **Assess feasibility — check domain and model tier:**
+   - **Domain check:** Is this a focused task (email, code review, support, extraction) or a broad/general task (open chat, helpfulness)?
+     - If broad/general → **stop**. Inform user that prompt learning is not effective for this domain type. Suggest `optimize-prompt` instead.
+   - **Model check:** What is the baseline quality score?
+     - If baseline > 4.5/5 → **warn** the user that top-tier models show ceiling effects and prompt learning may not yield improvement.
+   - **Present assessment** to the user before proceeding.
+
+3. **Collect feedback data:**
    - Use `list_traces` to pull traces with feedback for the target deployment
    - Collect at least 50 traces (more is better) from a meaningful time period
    - Separate into: negative feedback traces and positive feedback traces
    - Identify the feedback source: human (thumbs up/down, corrections, free-text) or AI evaluator scores
 
-3. **Verify sufficient data:**
+4. **Verify sufficient data:**
    - Need at least f=10 failure traces to proceed
-   - Need at least p=3 positive traces for regression anchors
    - If insufficient, inform user and suggest using `feedback-loop` to set up collection first
 
 ### Phase 2: Normalize Feedback (Normalize)
 
-4. **Normalize feedback to shared representation:**
+5. **Normalize feedback to shared representation:**
 
    All feedback — human or AI — gets normalized to this shape:
    ```json
@@ -167,54 +191,60 @@ Follow these steps **in order**. Do NOT skip steps.
      "verdict": "fail" | "pass" | "borderline",
      "severity": 1-5,
      "issue_tags": ["<from taxonomy>"],
-     "explanation": "..."
+     "expected_behavior": "what should have happened"
    }
    ```
 
+   **Severity mapping:**
+
+   | Condition | Severity |
+   |-----------|----------|
+   | Score on 1-5 scale (5 best) | `severity = 6 - score` |
+   | Score on 1-10 scale (10 best) | `severity = ceil((10 - score) / 2)` |
+   | Policy/safety violation or hallucination | 5 |
+   | Wrong answer or missed key requirement | 4 |
+   | Partial/incomplete response | 3 |
+   | Minor format/tone/verbosity issue | 2 |
+   | Nitpick/stylistic preference | 1 |
+
    **For human feedback:**
-   - Thumbs down → `{"verdict": "fail", "severity": 3, "issue_tags": [], "explanation": ""}`
-   - Free-text correction → extract issue tags and explanation from the text
-   - Numerical rating (e.g., 1-5) → map to verdict (1-2: fail, 3: borderline, 4-5: pass)
+   - Thumbs down → `{"verdict": "fail", "severity": 3, "issue_tags": [], "expected_behavior": ""}`
+   - Free-text correction → extract issue tags and expected behavior from the text
+   - Numerical rating (e.g., 1-5) → map to verdict (1-2: fail, 3: borderline, 4-5: pass), use severity mapping above
 
    **For AI evaluator feedback:**
-   - Boolean false → `{"verdict": "fail", "severity": 3, "issue_tags": [], "explanation": "<from evaluator>"}`
+   - Boolean false → `{"verdict": "fail", "severity": 3, "issue_tags": [], "expected_behavior": "<from evaluator explanation>"}`
    - Categorical/numerical → map to verdict based on scale, carry explanation through
 
-   If raw feedback lacks explanations (e.g., bare thumbs-down), use the LLM to enrich: pass the input/output pair and ask for a brief failure analysis to populate `issue_tags` and `explanation`.
+   If raw feedback lacks explanations (e.g., bare thumbs-down), use the LLM to enrich: pass the input/output pair and ask for a brief failure analysis to populate `issue_tags` and `expected_behavior`.
 
-5. **Sample the batch:**
+6. **Sample the batch:**
    - Sample f=10 representative failures (diverse issue types, not all the same failure)
-   - Sample p=3 positive traces as regression anchors
    - If more failures exist, prioritize diversity across issue types
 
 ### Phase 3: Generate Rules (Meta-Prompt)
 
-6. **Build the meta-prompt** by filling in the template below with collected data:
+7. **Build the meta-prompt** by filling in the template below with collected data:
    - `PROMPT_TYPE`: "agent" or "evaluator" based on target
    - `CURRENT_PROMPT`: full text of the current prompt version
    - `ITERATION`: current iteration number (starts at 1)
    - `FEEDBACK_SOURCE`: "human" or "ai_eval"
    - `FAILURE_EXAMPLES`: the f=10 sampled failures with normalized feedback
-   - `POSITIVE_EXAMPLES`: the p=3 sampled positive traces
 
-7. **Follow the meta-prompt process below** with the variables filled in from the collected data:
+8. **Follow the meta-prompt process below** with the variables filled in from the collected data:
 
    ~~~
    You are a prompt engineer improving a prompt based on feedback from multiple examples.
 
-   GOAL: Analyze a batch of feedback (failures + positive anchors) and produce minimal, high-impact rules that:
-   1. Fix recurring failure patterns
-   2. Don't break existing good behavior (regression anchors)
+   GOAL: Analyze a batch of feedback failures and produce minimal, high-impact rules that fix recurring failure patterns.
 
    INPUTS:
    1) PROMPT_TYPE: "agent" | "evaluator"
    2) CURRENT_PROMPT: The prompt to improve
    3) ITERATION: Current iteration number
    4) FEEDBACK_SOURCE: "human" | "ai_eval"
-   5) FAILURE_EXAMPLES (5-15 samples with negative feedback):
-      [{"user_input": "...", "model_output": "...", "reference": "..." (optional), "feedback": <see shapes below>}, ...]
-   6) POSITIVE_EXAMPLES (2-5 regression anchors):
-      [{"user_input": "...", "model_output": "...", "feedback": "pass" | {"value": true, ...}}, ...]
+   5) FAILURE_EXAMPLES (10 samples with negative feedback):
+      [{"user_input": "...", "model_output": "...", "feedback": <see shapes below>}, ...]
 
    FEEDBACK SHAPES:
    - Human categorical: "fail" | "pass" | "borderline"
@@ -223,7 +253,7 @@ Follow these steps **in order**. Do NOT skip steps.
    - AI eval boolean: {"value": true|false, "explanation": "..."}
    - AI eval categorical: {"value": "A"|"B"|"C", "explanation": "..."}
    - AI eval numerical: {"value": 6, "scale": "1-10", "explanation": "..."}
-   - Enriched normalized: {"verdict": "fail", "severity": 4, "issue_tags": ["missing_requirement"], "explanation": "..."}
+   - Enriched normalized: {"verdict": "fail", "severity": 4, "issue_tags": ["missing_requirement"], "expected_behavior": "..."}
 
    PROCESS:
 
@@ -232,51 +262,45 @@ Follow these steps **in order**. Do NOT skip steps.
    Issue taxonomy: accuracy, missing_requirement, policy, safety, formatting, verbosity, tone, tool_use, reasoning, hallucination.
    Output: {"patterns": [{"issue_tag": "...", "count": N, "severity": 1-5, "examples": [indices], "root_cause": "..."}], "one_off_issues": [...]}
 
-   STEP 2 — CHECK AGAINST POSITIVE ANCHORS:
-   For each pattern, verify the fix won't break positive examples.
-   Output: {"anchor_conflicts": [{"pattern": "...", "conflicting_anchor": index, "conflict_reason": "..."}]}
-
-   STEP 3 — GENERATE RULES (only for recurring patterns without conflicts):
+   STEP 2 — GENERATE RULES (only for recurring patterns):
    Create 1-5 rules. Format: "If [TRIGGER], then [ACTION]."
    Prioritize by: frequency × severity.
-   Skip: one-offs, anchor conflicts, patterns too vague to test.
+   Skip: one-offs, patterns too vague to test.
 
-   STEP 4 — FORMAT RULES_TO_APPEND:
+   STEP 3 — FORMAT RULES_TO_APPEND:
    Text block for ### LEARNED_RULES section.
 
-   STEP 5 — GENERATE REGRESSION TESTS:
+   STEP 4 — GENERATE REGRESSION TESTS:
    Create 5-10 test cases: 3-5 "should_now_pass" + 2-5 "should_still_pass".
 
-   STEP 6 — ITERATION GUIDANCE:
-   Recommend "continue" (significant patterns remain) or "stop" (diminishing returns).
+   STEP 5 — ITERATION GUIDANCE:
+   Recommend "stop" (default after iteration 1) or "continue" (only if major patterns remain unfixed).
 
    OUTPUT FORMAT:
    A) PATTERN_ANALYSIS — JSON with patterns and one_off_issues
-   B) ANCHOR_CHECK — JSON with anchor_conflicts and safe_to_patch list
-   C) RULES — numbered list
-   D) RULES_TO_APPEND — text block for the prompt
-   E) REGRESSION_TESTS — JSON array of test cases
-   F) ITERATION_GUIDANCE — {"recommendation": "continue"|"stop", "reason": "...", "remaining_issues": N, "expected_next_iteration_gain": "high"|"medium"|"low"}
+   B) RULES — numbered list
+   C) RULES_TO_APPEND — text block for the prompt
+   D) REGRESSION_TESTS — JSON array of test cases
+   E) ITERATION_GUIDANCE — {"recommendation": "continue"|"stop", "reason": "...", "remaining_issues": N}
 
    NOW PROCESS THE ACTUAL INPUT.
    ~~~
 
-8. **Produce the structured output** (sections A through F) from the analysis above.
+9. **Produce the structured output** (sections A through E) from the analysis above.
 
-9. **Review the output** with the user:
-   - Show the identified patterns and their frequency/severity
-   - Show the generated rules
-   - Highlight any anchor conflicts
-   - Present ITERATION_GUIDANCE recommendation
+10. **Review the output** with the user:
+    - Show the identified patterns and their frequency/severity
+    - Show the generated rules
+    - Present ITERATION_GUIDANCE recommendation
 
 ### Phase 4: Aggregate and Apply
 
-10. **Aggregate rules** across iterations (if iteration > 1):
+11. **Aggregate rules** across iterations (if iteration > 1):
     - Merge new rules with existing `### LEARNED_RULES` section
     - Remove duplicates or conflicting rules
     - Enforce total rule cap of 10
 
-11. **Apply rules to the prompt** — **ask user confirmation first:**
+12. **Apply rules to the prompt** — **ask user confirmation first:**
     - Create a new prompt version with `### LEARNED_RULES` section appended
     - Use HTTP API to create the new version
     - Document what rules were added and which patterns they address
@@ -289,51 +313,57 @@ Follow these steps **in order**. Do NOT skip steps.
     ...
     ```
 
-### Phase 5: Validate (A/B Experiment)
+### Phase 5: Validate (Multi-Judge Experiment)
 
-12. **Set up a validation experiment:**
+13. **Set up a multi-judge validation experiment:**
     - Use `create_experiment` to compare baseline (no rules) vs variant (with rules)
-    - Use the same dataset for both runs
+    - Use the same dataset for both runs (10-50 examples)
+    - **Configure 3+ diverse judge models** (e.g., Gemini, GPT, Claude) — single-judge overestimates by 40-60%
     - Include evaluators that measure the targeted failure types
     - Include the regression tests from the meta-prompt output
 
-13. **Run the experiment and analyze results:**
+14. **Run the experiment and analyze results:**
     - Use `list_experiment_runs` to monitor progress
     - Use `get_experiment_run` to fetch results
-    - Compare:
+    - Compare across **all judges**:
       ```
-      | Evaluator | Baseline | Variant | Delta |
-      |-----------|----------|---------|-------|
-      | [target metric] | X% | Y% | +Z% |
-      | [regression metric] | X% | Y% | +Z% |
+      | Judge Model | Evaluator | Baseline | Variant | Delta |
+      |-------------|-----------|----------|---------|-------|
+      | [judge 1]   | [metric]  | X%       | Y%      | +Z%   |
+      | [judge 2]   | [metric]  | X%       | Y%      | +Z%   |
+      | [judge 3]   | [metric]  | X%       | Y%      | +Z%   |
       ```
 
-14. **Decision framework:**
-    - **Clear win** (>5% improvement on target, no regression) → Promote variant
-    - **Mixed results** (improvement + regression elsewhere) → Investigate, iterate
-    - **No improvement** → Re-examine feedback normalization, try different samples
-    - **Regression** → Revert, rules may be too aggressive
+15. **Decision framework:**
+    - **Clear win** — majority of judges show improvement, no regression → Promote variant
+    - **Mixed results** — judges disagree → Investigate, may be noise
+    - **No improvement** — most judges show no change → Re-examine feedback, try different samples
+    - **Regression** — any judge shows regression → Revert, rules may be too aggressive
+    - **Single judge shows large gain but others don't** → Discard. This is the 40-60% overestimation pattern.
 
-### Phase 6: Iterate
+### Phase 6: Iterate (Usually Stop at 1)
 
-15. **Check iteration guidance:**
-    - If meta-prompt recommends `"continue"` AND iteration < max (2 for GPT/Claude, 5 for Gemini):
-      - Return to Phase 1 Step 2 with updated prompt (now including rules)
-      - Collect fresh feedback or use remaining unprocessed failures
+16. **Check iteration guidance:**
+    - **Default: stop after iteration 1.** Research shows 1 iteration gives best results; more iterations cause prompt bloat and diminishing returns.
+    - If significant failure patterns remain AND iteration < 2:
+      - Return to Phase 2 Step 6 with updated prompt (now including rules)
+      - Use remaining unprocessed failures
       - Increment iteration counter
-    - If meta-prompt recommends `"stop"` OR max iterations reached:
+    - If meta-prompt recommends `"stop"` OR iteration = 2:
       - Present final summary to user
       - If validated, **ask user confirmation** to promote to production deployment
 
-16. **Final summary:**
+17. **Final summary:**
     ```
     ## Prompt Learning Summary
     - **Target:** [prompt/deployment name]
+    - **Domain type:** [focused domain description]
     - **Iterations completed:** [N]
     - **Rules generated:** [N]
     - **Feedback source:** human | ai_eval
     - **Key patterns addressed:** [list]
-    - **Validation result:** [pass/fail with metrics]
+    - **Multi-judge validation:** [pass/fail with per-judge metrics]
+    - **Effect size:** [delta on 5-point scale]
     - **Status:** [promoted / pending promotion / reverted]
     ```
 
@@ -341,13 +371,15 @@ Follow these steps **in order**. Do NOT skip steps.
 
 | Anti-Pattern | Why It's Wrong | What to Do Instead |
 |---|---|---|
+| Using on broad/general tasks | 0% significant improvement on helpfulness (RES-205) | Only use on focused domains (email, code review, support) |
+| Validating with a single judge | Overestimates improvement by 40-60% | Always use 3+ diverse judge models |
 | Acting on single-occurrence feedback | Noise, not signal | Require 2+ occurrences before generating rules |
 | Rewriting the whole prompt with rules | Destroys existing instructions | Only append to `### LEARNED_RULES` section |
-| Skipping positive anchors | Rules may break what already works | Always include p=3 positive traces in each batch |
-| Running more than 5 iterations | Diminishing returns, overfitting risk | Stop at 2 iterations (5 for Gemini) |
+| Running more than 2 iterations | Prompt bloat, diminishing returns | Stop at 1 iteration (2 max) |
 | Treating human and AI feedback differently in the pipeline | Research shows same method works for both | Normalize to shared representation, then process identically |
-| Deploying rules without validation experiment | No evidence the rules actually help | Always A/B test before promoting |
-| Generating rules from too few failures | Insufficient pattern evidence | Wait for f=10 failures minimum per batch |
+| Deploying rules without multi-judge validation | No reliable evidence the rules actually help | Always validate with 3+ judges before promoting |
+| Applying to top-tier models at ceiling | Models scoring >4.5/5 show no improvement | Check baseline score first; skip if already high |
+| Adding reference comparisons to the meta-prompt | CriSPO-style references made results worse (-21% vs -14%) | Use failure-only analysis without reference comparison |
 
 ## Open in orq.ai
 
@@ -355,5 +387,5 @@ After completing this skill, direct the user to the relevant platform page:
 
 - **View/edit the prompt:** `https://my.orq.ai/prompts` — review the prompt with `### LEARNED_RULES` section
 - **Check traces with feedback:** `https://my.orq.ai/traces` — inspect traces that provided the feedback signal
-- **View experiment results:** `https://my.orq.ai/experiments` — review the A/B validation experiment
+- **View experiment results:** `https://my.orq.ai/experiments` — review the multi-judge validation experiment
 - **Feedback overview:** `https://my.orq.ai/feedback` — monitor ongoing feedback collection

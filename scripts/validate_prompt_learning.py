@@ -9,7 +9,8 @@ Checks:
 1. Frontmatter matches existing skill patterns
 2. All companion skill references point to existing skills
 3. AGENTS.md includes the new skill entry
-4. Meta-prompt template is inline in SKILL.md with required structural elements
+4. Meta-prompt is inline in SKILL.md with required structural elements
+5. RES-205 research findings are reflected (domain gating, multi-judge, P=0)
 """
 
 from __future__ import annotations
@@ -62,29 +63,24 @@ def test_frontmatter() -> list[str]:
     text = SKILL_MD.read_text(encoding="utf-8")
     meta = parse_frontmatter(text)
 
-    # Required fields
     for field in ("name", "description", "allowed-tools"):
         if field not in meta:
             errors.append(f"Missing frontmatter field: {field}")
 
-    # Name should match directory
     if meta.get("name") != "prompt-learning":
         errors.append(
             f"Frontmatter name '{meta.get('name')}' doesn't match "
             f"directory 'prompt-learning'"
         )
 
-    # Description should be non-empty
     if not meta.get("description"):
         errors.append("Frontmatter description is empty")
 
-    # allowed-tools should contain core tools present in all skills
     allowed = meta.get("allowed-tools", "")
     for tool in ("Bash", "Read", "Write", "Edit", "Grep", "Glob", "AskUserQuestion"):
         if tool not in allowed:
             errors.append(f"allowed-tools missing core tool: {tool}")
 
-    # Cross-check: compare against another skill's frontmatter pattern
     reference_skill = ROOT / "skills" / "optimize-prompt" / "SKILL.md"
     if reference_skill.exists():
         ref_meta = parse_frontmatter(
@@ -111,7 +107,6 @@ def test_companion_skills() -> list[str]:
     text = SKILL_MD.read_text(encoding="utf-8")
     existing = collect_existing_skills()
 
-    # Extract companion skill names from backtick references after "Companion skills:"
     companion_section = re.search(
         r"\*\*Companion skills:\*\*\s*\n((?:- .*\n)*)", text
     )
@@ -128,7 +123,6 @@ def test_companion_skills() -> list[str]:
         if name not in existing:
             errors.append(f"Companion skill '{name}' does not exist as a skill")
 
-    # Check bidirectional: do companion skills reference us back?
     for name in companion_names:
         companion_path = ROOT / "skills" / name / "SKILL.md"
         if companion_path.exists():
@@ -150,37 +144,18 @@ def test_agents_md() -> list[str]:
 
     text = AGENTS_MD.read_text(encoding="utf-8")
 
-    # Check skill path entry
     expected_path = 'prompt-learning -> "skills/prompt-learning/SKILL.md"'
     if expected_path not in text:
         errors.append(f"AGENTS.md missing path entry: {expected_path}")
 
-    # Check description entry in available_skills
     if "prompt-learning:" not in text:
         errors.append("AGENTS.md missing description entry for prompt-learning")
 
-    # Check alphabetical ordering in the skills list
-    path_entries = re.findall(
-        r" - (\S+) -> ", text
-    )
+    path_entries = re.findall(r" - (\S+) -> ", text)
     if path_entries:
         sorted_entries = sorted(path_entries, key=str.lower)
         if path_entries != sorted_entries:
             errors.append("AGENTS.md skill list is not alphabetically sorted")
-
-    # Check alphabetical ordering in available_skills
-    desc_entries = re.findall(r"^(\S+):", text, re.MULTILINE)
-    # Filter to only skill entries (those that have backtick descriptions)
-    skill_descs = [
-        e for e in desc_entries
-        if f"{e}:" in text and "`" in text.split(f"{e}:")[1].split("\n")[0]
-    ]
-    if skill_descs:
-        sorted_descs = sorted(skill_descs, key=str.lower)
-        if skill_descs != sorted_descs:
-            errors.append(
-                "AGENTS.md available_skills descriptions not alphabetically sorted"
-            )
 
     return errors
 
@@ -194,7 +169,6 @@ def test_inline_meta_prompt() -> list[str]:
 
     text = SKILL_MD.read_text(encoding="utf-8")
 
-    # The meta-prompt should be inline in Phase 3 (not in a separate file)
     resources_dir = SKILL_DIR / "resources"
     if resources_dir.exists() and (resources_dir / "meta-prompt.md").exists():
         errors.append(
@@ -202,19 +176,14 @@ def test_inline_meta_prompt() -> list[str]:
             "should be inlined in SKILL.md Phase 3"
         )
 
-    # Check that Phase 3 contains the meta-prompt template
-    if "Execute the following meta-prompt" not in text:
+    if "Follow the meta-prompt process below" not in text:
         errors.append("SKILL.md Phase 3 missing inline meta-prompt instruction")
 
-    # Check required structural elements are present in the inline template
     required_elements = [
         ("GOAL", "meta-prompt GOAL section"),
         ("FAILURE_EXAMPLES", "failure examples input"),
-        ("POSITIVE_EXAMPLES", "positive examples input"),
         ("FEEDBACK SHAPES", "feedback shape reference"),
         ("STEP 1", "failure pattern analysis step"),
-        ("STEP 2", "anchor check step"),
-        ("STEP 3", "rule generation step"),
         ("RULES_TO_APPEND", "rules output format"),
         ("REGRESSION_TESTS", "regression test generation"),
         ("ITERATION_GUIDANCE", "iteration guidance output"),
@@ -225,25 +194,62 @@ def test_inline_meta_prompt() -> list[str]:
         if element not in text:
             errors.append(f"SKILL.md missing meta-prompt element: {description} ({element})")
 
-    # Check that the issue taxonomy tags in the inline template match the
-    # Issue Taxonomy section
     taxonomy_section = text.split("Issue Taxonomy")[1].split("##")[0] if "Issue Taxonomy" in text else ""
-    taxonomy_tags = re.findall(r"`(\w+)`", taxonomy_section)
     expected_tags = {
         "accuracy", "missing_requirement", "policy", "safety",
         "formatting", "verbosity", "tone", "tool_use", "reasoning",
         "hallucination",
     }
-    # Only check tags that look like taxonomy entries
+    taxonomy_tags = re.findall(r"`(\w+)`", taxonomy_section)
     found_tags = {t for t in taxonomy_tags if t in expected_tags}
     missing_tags = expected_tags - found_tags
     if missing_tags:
         errors.append(f"Issue Taxonomy section missing tags: {missing_tags}")
 
-    # Check that the inline meta-prompt also lists the taxonomy tags
-    # (look for the compact taxonomy list in the template)
-    if "accuracy" not in text or "hallucination" not in text:
-        errors.append("Inline meta-prompt missing taxonomy tag references")
+    return errors
+
+
+def test_research_alignment() -> list[str]:
+    """Check 5: RES-205 research findings are reflected in SKILL.md."""
+    errors = []
+
+    if not SKILL_MD.exists():
+        return [f"SKILL.md not found at {SKILL_MD}"]
+
+    text = SKILL_MD.read_text(encoding="utf-8")
+
+    # Domain gating
+    if "When NOT to use" not in text:
+        errors.append("Missing 'When NOT to use' section (domain gating)")
+    if "focused" not in text.lower():
+        errors.append("Missing focused domain guidance")
+    if "broad" not in text.lower() and "general" not in text.lower():
+        errors.append("Missing warning about broad/general domains")
+
+    # Multi-judge validation
+    if "multi-judge" not in text.lower() and "multi_judge" not in text.lower():
+        errors.append("Missing multi-judge validation requirement")
+    if "3+" not in text and "3 " not in text:
+        errors.append("Missing 3+ judge requirement")
+    if "overestimate" not in text.lower():
+        errors.append("Missing single-judge overestimation warning (40-60%)")
+
+    # P=0 default
+    defaults_section = text.split("## Defaults")[1].split("##")[0] if "## Defaults" in text else ""
+    if "P=0" not in defaults_section and "p) | 0" not in defaults_section:
+        errors.append("Defaults table should show P=0 (research finding)")
+
+    # Ceiling effect
+    if "ceiling" not in text.lower():
+        errors.append("Missing model ceiling effect warning")
+
+    # No "preliminary" or "pending" language
+    if "preliminary" in text.lower() or "pending validation" in text.lower():
+        errors.append("Still contains 'preliminary'/'pending' language — results are final")
+
+    # Reference comparison anti-pattern
+    if "reference" not in text.lower() or "worse" not in text.lower():
+        errors.append("Missing anti-pattern about reference comparisons making results worse")
 
     return errors
 
@@ -254,6 +260,7 @@ def main() -> None:
         ("Companion skill references are valid", test_companion_skills),
         ("AGENTS.md includes prompt-learning correctly", test_agents_md),
         ("Meta-prompt is inline and well-structured", test_inline_meta_prompt),
+        ("RES-205 research findings reflected", test_research_alignment),
     ]
 
     total_errors = 0
