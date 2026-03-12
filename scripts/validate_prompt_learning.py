@@ -1,0 +1,286 @@
+#!/usr/bin/env -S uv run
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
+"""Validate the prompt-learning skill integration.
+
+Checks:
+1. Frontmatter matches existing skill patterns
+2. All companion skill references point to existing skills
+3. AGENTS.md includes the new skill entry
+4. Meta-prompt is inline in SKILL.md with required structural elements
+5. RES-205 research findings are reflected (domain gating, multi-judge, P=0)
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parent.parent
+SKILL_DIR = ROOT / "skills" / "prompt-learning"
+SKILL_MD = SKILL_DIR / "SKILL.md"
+AGENTS_MD = ROOT / "agents" / "AGENTS.md"
+
+PASS = "\033[32m✓\033[0m"
+FAIL = "\033[31m✗\033[0m"
+
+
+def parse_frontmatter(text: str) -> dict[str, str]:
+    match = re.search(r"^---\s*\n(.*?)\n---\s*", text, re.DOTALL)
+    if not match:
+        return {}
+    data: dict[str, str] = {}
+    for line in match.group(1).splitlines():
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        data[key.strip()] = value.strip()
+    return data
+
+
+def collect_existing_skills() -> set[str]:
+    """Discover all skills that have a SKILL.md file."""
+    skills = set()
+    for skill_md in ROOT.glob("skills/*/SKILL.md"):
+        meta = parse_frontmatter(skill_md.read_text(encoding="utf-8"))
+        name = meta.get("name")
+        if name:
+            skills.add(name)
+    return skills
+
+
+def test_frontmatter() -> list[str]:
+    """Check 1: Frontmatter matches existing skill patterns."""
+    errors = []
+
+    if not SKILL_MD.exists():
+        return [f"SKILL.md not found at {SKILL_MD}"]
+
+    text = SKILL_MD.read_text(encoding="utf-8")
+    meta = parse_frontmatter(text)
+
+    for field in ("name", "description", "allowed-tools"):
+        if field not in meta:
+            errors.append(f"Missing frontmatter field: {field}")
+
+    if meta.get("name") != "prompt-learning":
+        errors.append(
+            f"Frontmatter name '{meta.get('name')}' doesn't match "
+            f"directory 'prompt-learning'"
+        )
+
+    if not meta.get("description"):
+        errors.append("Frontmatter description is empty")
+
+    allowed = meta.get("allowed-tools", "")
+    for tool in ("Bash", "Read", "Write", "Edit", "Grep", "Glob", "AskUserQuestion"):
+        if tool not in allowed:
+            errors.append(f"allowed-tools missing core tool: {tool}")
+
+    reference_skill = ROOT / "skills" / "optimize-prompt" / "SKILL.md"
+    if reference_skill.exists():
+        ref_meta = parse_frontmatter(
+            reference_skill.read_text(encoding="utf-8")
+        )
+        ref_fields = set(ref_meta.keys())
+        our_fields = set(meta.keys())
+        missing = ref_fields - our_fields
+        if missing:
+            errors.append(
+                f"Frontmatter missing fields present in optimize-prompt: {missing}"
+            )
+
+    return errors
+
+
+def test_companion_skills() -> list[str]:
+    """Check 2: All companion skill references point to existing skills."""
+    errors = []
+
+    if not SKILL_MD.exists():
+        return [f"SKILL.md not found at {SKILL_MD}"]
+
+    text = SKILL_MD.read_text(encoding="utf-8")
+    existing = collect_existing_skills()
+
+    companion_section = re.search(
+        r"\*\*Companion skills:\*\*\s*\n((?:- .*\n)*)", text
+    )
+    if not companion_section:
+        errors.append("No 'Companion skills' section found")
+        return errors
+
+    companion_names = re.findall(r"`([^`]+)`", companion_section.group(1))
+    if not companion_names:
+        errors.append("No companion skills listed")
+        return errors
+
+    for name in companion_names:
+        if name not in existing:
+            errors.append(f"Companion skill '{name}' does not exist as a skill")
+
+    for name in companion_names:
+        companion_path = ROOT / "skills" / name / "SKILL.md"
+        if companion_path.exists():
+            companion_text = companion_path.read_text(encoding="utf-8")
+            if "prompt-learning" not in companion_text:
+                errors.append(
+                    f"Companion '{name}' does not reference 'prompt-learning' back"
+                )
+
+    return errors
+
+
+def test_agents_md() -> list[str]:
+    """Check 3: AGENTS.md has correct formatting with new entry."""
+    errors = []
+
+    if not AGENTS_MD.exists():
+        return [f"AGENTS.md not found at {AGENTS_MD}"]
+
+    text = AGENTS_MD.read_text(encoding="utf-8")
+
+    expected_path = 'prompt-learning -> "skills/prompt-learning/SKILL.md"'
+    if expected_path not in text:
+        errors.append(f"AGENTS.md missing path entry: {expected_path}")
+
+    if "prompt-learning:" not in text:
+        errors.append("AGENTS.md missing description entry for prompt-learning")
+
+    path_entries = re.findall(r" - (\S+) -> ", text)
+    if path_entries:
+        sorted_entries = sorted(path_entries, key=str.lower)
+        if path_entries != sorted_entries:
+            errors.append("AGENTS.md skill list is not alphabetically sorted")
+
+    return errors
+
+
+def test_inline_meta_prompt() -> list[str]:
+    """Check 4: Meta-prompt template is inline in SKILL.md with required elements."""
+    errors = []
+
+    if not SKILL_MD.exists():
+        return [f"SKILL.md not found at {SKILL_MD}"]
+
+    text = SKILL_MD.read_text(encoding="utf-8")
+
+    resources_dir = SKILL_DIR / "resources"
+    if resources_dir.exists() and (resources_dir / "meta-prompt.md").exists():
+        errors.append(
+            "Meta-prompt exists as separate file resources/meta-prompt.md — "
+            "should be inlined in SKILL.md Phase 3"
+        )
+
+    if "Follow the meta-prompt process below" not in text:
+        errors.append("SKILL.md Phase 3 missing inline meta-prompt instruction")
+
+    required_elements = [
+        ("GOAL", "meta-prompt GOAL section"),
+        ("FAILURE_EXAMPLES", "failure examples input"),
+        ("FEEDBACK SHAPES", "feedback shape reference"),
+        ("STEP 1", "failure pattern analysis step"),
+        ("RULES_TO_APPEND", "rules output format"),
+        ("REGRESSION_TESTS", "regression test generation"),
+        ("ITERATION_GUIDANCE", "iteration guidance output"),
+        ("If [TRIGGER]", "rule format specification"),
+        ("LEARNED_RULES", "learned rules section reference"),
+    ]
+    for element, description in required_elements:
+        if element not in text:
+            errors.append(f"SKILL.md missing meta-prompt element: {description} ({element})")
+
+    taxonomy_section = text.split("Issue Taxonomy")[1].split("##")[0] if "Issue Taxonomy" in text else ""
+    expected_tags = {
+        "accuracy", "missing_requirement", "policy", "safety",
+        "formatting", "verbosity", "tone", "tool_use", "reasoning",
+        "hallucination",
+    }
+    taxonomy_tags = re.findall(r"`(\w+)`", taxonomy_section)
+    found_tags = {t for t in taxonomy_tags if t in expected_tags}
+    missing_tags = expected_tags - found_tags
+    if missing_tags:
+        errors.append(f"Issue Taxonomy section missing tags: {missing_tags}")
+
+    return errors
+
+
+def test_research_alignment() -> list[str]:
+    """Check 5: RES-205 research findings are reflected in SKILL.md."""
+    errors = []
+
+    if not SKILL_MD.exists():
+        return [f"SKILL.md not found at {SKILL_MD}"]
+
+    text = SKILL_MD.read_text(encoding="utf-8")
+
+    # Domain gating
+    if "When NOT to use" not in text:
+        errors.append("Missing 'When NOT to use' section (domain gating)")
+    if "focused" not in text.lower():
+        errors.append("Missing focused domain guidance")
+    if "broad" not in text.lower() and "general" not in text.lower():
+        errors.append("Missing warning about broad/general domains")
+
+    # Multi-judge validation
+    if "multi-judge" not in text.lower() and "multi_judge" not in text.lower():
+        errors.append("Missing multi-judge validation requirement")
+    if "3+" not in text and "3 " not in text:
+        errors.append("Missing 3+ judge requirement")
+    if "overestimate" not in text.lower():
+        errors.append("Missing single-judge overestimation warning (40-60%)")
+
+    # P=0 default
+    defaults_section = text.split("## Defaults")[1].split("##")[0] if "## Defaults" in text else ""
+    if "P=0" not in defaults_section and "p) | 0" not in defaults_section:
+        errors.append("Defaults table should show P=0 (research finding)")
+
+    # Ceiling effect
+    if "ceiling" not in text.lower():
+        errors.append("Missing model ceiling effect warning")
+
+    # No "preliminary" or "pending" language
+    if "preliminary" in text.lower() or "pending validation" in text.lower():
+        errors.append("Still contains 'preliminary'/'pending' language — results are final")
+
+    # Reference comparison anti-pattern
+    if "reference" not in text.lower() or "worse" not in text.lower():
+        errors.append("Missing anti-pattern about reference comparisons making results worse")
+
+    return errors
+
+
+def main() -> None:
+    checks = [
+        ("Frontmatter matches existing skill patterns", test_frontmatter),
+        ("Companion skill references are valid", test_companion_skills),
+        ("AGENTS.md includes prompt-learning correctly", test_agents_md),
+        ("Meta-prompt is inline and well-structured", test_inline_meta_prompt),
+        ("RES-205 research findings reflected", test_research_alignment),
+    ]
+
+    total_errors = 0
+    for label, check_fn in checks:
+        errors = check_fn()
+        if errors:
+            print(f"{FAIL} {label}")
+            for err in errors:
+                print(f"    - {err}")
+            total_errors += len(errors)
+        else:
+            print(f"{PASS} {label}")
+
+    print()
+    if total_errors:
+        print(f"{total_errors} error(s) found.")
+        sys.exit(1)
+    else:
+        print("All checks passed.")
+
+
+if __name__ == "__main__":
+    main()
