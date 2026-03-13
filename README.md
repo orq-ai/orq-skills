@@ -25,8 +25,8 @@ BUILD                 ANALYZE → MEASURE → IMPROVE
 build-agent -------> analyze-trace-failures --> run-experiment
 build-evaluator           "what's failing?"      "measure & decide"
                                |                      |
-                               |    generate-synthetic-dataset
-                               |         (data for evals)
+                               |             generate-synthetic-dataset
+                               |                (data for evals)
                                |                      |
                                |                optimize-prompt
                                |                 (improve prompts)
