@@ -1,10 +1,17 @@
 ---
 name: build-evaluator
-description: Create validated LLM-as-a-Judge evaluators following evaluation best practices
+description: Create validated LLM-as-a-Judge evaluators following best practices — binary Pass/Fail judges with TPR/TNR validation for measuring specific failure modes
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, Task, AskUserQuestion, mcp__linear-server__*, orq*
 ---
 
 # Build Evaluator
+
+**Companion skills:**
+- `run-experiment` — run experiments using the evaluators you build
+- `analyze-trace-failures` — identify failure modes that evaluators should target
+- `generate-synthetic-dataset` — generate test data for evaluator validation
+- `optimize-prompt` — iterate on prompts based on evaluator results
+- `build-agent` — create agents that evaluators assess
 
 Design and create production-grade LLM evaluators on the orq.ai platform, grounded in evaluation best practices.
 
@@ -19,6 +26,13 @@ Design and create production-grade LLM evaluators on the orq.ai platform, ground
 - User needs to measure tone, persona consistency, faithfulness, helpfulness, or other hard-to-code qualities
 - User wants to set up automated evaluation for an LLM pipeline
 - User asks about eval best practices or judge prompt design
+
+## When NOT to use
+
+- Need to run an experiment? → `run-experiment`
+- Need to identify failure modes first? → `analyze-trace-failures`
+- Need to optimize a prompt? → `optimize-prompt`
+- Need to generate test data? → `generate-synthetic-dataset`
 
 ## orq.ai Documentation
 

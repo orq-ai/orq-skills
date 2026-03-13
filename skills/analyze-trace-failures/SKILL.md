@@ -1,26 +1,38 @@
 ---
-name: trace-analysis
-description: Systematic trace reading and failure taxonomy building using open coding and axial coding
+name: analyze-trace-failures
+description: Read production traces, identify what's failing, build failure taxonomies, and categorize issues using open coding and axial coding methodology
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, Task, AskUserQuestion, mcp__linear-server__*, orq*
 ---
 
-# Trace Analysis
+# Analyze Trace Failures
 
 Systematic methodology for reading LLM traces, identifying failure modes, and building actionable failure taxonomies.
 
 **Companion skills:**
 - `build-evaluator` — build automated evaluators for persistent failure modes
-- `action-plan` — turn findings into prioritized improvement plans
-- `prompt-learning` — automatically turn trace-identified patterns into prompt rules
+- `run-experiment` — measure improvements with experiments (absorbs action-plan)
+- `generate-synthetic-dataset` — generate test data when no production data exists
+- `optimize-prompt` — optimize prompts based on identified failures
 
 ## When to use
 
-- User wants to understand why their LLM pipeline is failing
+Trigger phrases and situations:
+- "what's failing?"
+- "why are my outputs bad?"
+- "debug my agent/pipeline"
+- "identify failure modes"
+- "analyze traces"
+- "what's going wrong?"
+- Before building any evaluator — error analysis must come first
 - User has traces/logs and wants to identify systematic issues
 - User needs to build a failure taxonomy before creating evaluators
-- User asks "what's going wrong?" or "why are my outputs bad?"
-- Before building any evaluator — error analysis must come first
 - User wants to debug a multi-step pipeline or agent
+
+## When NOT to use
+
+- **Want to run an experiment?** → use `run-experiment`
+- **Want to optimize a prompt?** → use `optimize-prompt`
+- **Want to build an agent?** → use `build-agent`
 
 ## orq.ai Documentation
 
@@ -234,7 +246,7 @@ When annotating traces, use Pass/Fail per specific criterion. Likert scales (1-5
     - Specification failures → fix prompts directly
     - Need test data → `generate-synthetic-dataset`
     - Need evaluators → `build-evaluator`
-    - Need tickets → `action-plan`
+    - Need improvement measurement → `run-experiment`
 
 ### Phase 6: Iterate
 
