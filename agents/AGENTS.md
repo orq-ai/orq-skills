@@ -8,7 +8,7 @@ These skills are:
  - build-evaluator -> "skills/build-evaluator/SKILL.md"
  - generate-synthetic-dataset -> "skills/generate-synthetic-dataset/SKILL.md"
  - optimize-prompt -> "skills/optimize-prompt/SKILL.md"
- - run-experiment -> "skills/run-experiment/SKILL.md"
+- run-experiment -> "skills/run-experiment/SKILL.md"
 
 IMPORTANT: You MUST read the SKILL.md file whenever the description of the skills matches the user intent, or may help accomplish their task.
 
@@ -31,3 +31,15 @@ optimize-prompt: `Analyze and optimize system prompts using a structured prompti
 Paths referenced within SKILL folders are relative to that SKILL. For example the build-evaluator `resources/judge-prompt-template.md` would be referenced as `skills/build-evaluator/resources/judge-prompt-template.md`.
 
 </skills>
+
+<commands>
+
+You have slash commands available in the `commands/` directory:
+
+ - invoke -> "commands/invoke.md" — Invoke an orq.ai agent or deployment and display the response
+ - status -> "commands/status.md" — Show workspace overview (agents, deployments, prompts, datasets, experiments)
+ - traces -> "commands/traces.md" — Query and summarize traces with filters (debugging entry point)
+
+Commands are quick-action tools. Skills are multi-step workflows. Use `/orq:invoke`, `/orq:status`, or `/orq:traces` for fast operations. Use skills when the user needs guided, multi-step work.
+
+</commands>

@@ -4,6 +4,18 @@ Agent Skills for building, evaluating, and improving LLM pipelines on the [orq.a
 
 These 6 skills encode best practices into repeatable workflows covering the full Build → Evaluate lifecycle — from creating agents and prompts, through trace analysis and experimentation, to prompt optimization.
 
+## Commands
+
+Quick-action slash commands for common operations. Commands are thin orchestrators — they parse arguments, call the API, and display results.
+
+| Command | What It Does | Usage |
+|---------|-------------|-------|
+| **invoke** | Test an agent or deployment and display the response | `/orq:invoke <name> "message"` |
+| **status** | Show workspace overview — agents, deployments, prompts, datasets, experiments | `/orq:status [section]` |
+| **traces** | Query and summarize traces with filters — debugging entry point | `/orq:traces [--deployment <name>] [--status <status>] [--last <duration>]` |
+
+**Commands vs skills:** Commands are for quick, focused actions (invoke, list, query). Skills are for multi-step workflows that require reasoning and decision-making (build, evaluate, optimize).
+
 ## Available Skills
 
 <!-- BEGIN_SKILLS_TABLE -->
@@ -49,46 +61,53 @@ Skills hand off to each other automatically — each SKILL.md lists its companio
 
 ## Quick Start Examples
 
-### 1. Evaluate an existing agent
+### 1. Test an agent quickly
+
+```
+/orq:invoke support-bot "What's your return policy?"
+→ Invokes the agent and displays the response
+```
+
+### 2. Check your workspace
+
+```
+/orq:status
+→ Shows counts and recent items across agents, deployments, prompts, datasets, experiments
+```
+
+### 3. Debug production issues
+
+```
+/orq:traces --status error --last 24h
+→ Shows recent errors, then hand off to analyze-trace-failures for deep analysis
+```
+
+### 4. Evaluate an existing agent
 
 ```
 You: "My support agent is giving bad answers, help me figure out why"
 → Skills used: analyze-trace-failures → build-evaluator → run-experiment
 ```
 
-### 2. Build an eval dataset from scratch
+### 5. Build an eval dataset from scratch
 
 ```
 You: "I need to create test cases for my product recommendation agent"
 → Skills used: generate-synthetic-dataset
 ```
 
-### 3. Evaluate a RAG pipeline
-
-```
-You: "My knowledge base answers are sometimes wrong, evaluate the pipeline"
-→ Skills used: run-experiment (RAG evaluation methodology)
-```
-
-### 4. Build a new agent
+### 6. Build a new agent
 
 ```
 You: "I need a customer support agent with access to our order database"
 → Skills used: build-agent
 ```
 
-### 5. Improve a prompt
+### 7. Improve a prompt
 
 ```
 You: "My prompt keeps breaking character, help me fix it"
 → Skills used: optimize-prompt
-```
-
-### 6. Clean up a messy dataset
-
-```
-You: "My eval dataset has duplicates and is unbalanced"
-→ Skills used: generate-synthetic-dataset (Mode 4: Curate)
 ```
 
 ## Key Best Practices Encoded
@@ -119,6 +138,12 @@ All skills integrate with the orq.ai platform through:
 ## File Structure
 
 ```
+.claude-plugin/
+└── plugin.json              # Plugin manifest
+commands/
+├── invoke.md                # /orq:invoke — test agents and deployments
+├── status.md                # /orq:status — workspace overview
+└── traces.md                # /orq:traces — query and summarize traces
 skills/
 ├── analyze-trace-failures/
 │   └── SKILL.md
