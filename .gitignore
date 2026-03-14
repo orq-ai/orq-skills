@@ -7,6 +7,8 @@
 .vscode/
 .idea/
 *.iml
+./context/*
+./plans/*
 
 # AI Assistants
 .claude/
@@ -21,3 +23,4 @@
 # OS
 Thumbs.db
 desktop.ini
+
