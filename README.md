@@ -2,7 +2,8 @@
 
 Agent Skills for building, evaluating, and improving LLM pipelines on the [orq.ai](https://orq.ai) platform.
 
-Each skill encodes best practices from prompt engineering, agent design, evaluation methodology, and experimentation into repeatable workflows. Together they cover the full **Build → Evaluate → Optimize** lifecycle — from creating agents and writing prompts, through trace analysis and dataset generation, to running validated experiments and iterating on results.
+Each skill encodes best practices from prompt engineering, agent design, evaluation methodology, and experimentation into repeatable workflows. 
+Together they cover the full **Build → Evaluate → Optimize** lifecycle — from creating agents and writing prompts, through trace analysis and dataset generation, to running validated experiments and iterating on results.
 
 Built on the [Agent Skills](https://agentskills.io/home#adoption) standard format — works with any compatible agent (Claude Code, Cursor, Gemini CLI, and others).
 
