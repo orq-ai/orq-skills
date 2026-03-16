@@ -84,17 +84,11 @@ Run a quick tour of commands, adapting to what's in the workspace:
 
 1. **`/orq:workspace`** — Always run this to show the workspace overview.
 
-2. **`/orq:invoke`** — Only if agents exist in the workspace:
-   > Let me invoke one of your agents to show how it works.
-   Pick the first agent and send a "Hello" message.
-
-3. **`/orq:traces`** — Only if there are traces in the workspace:
+2. **`/orq:traces`** — Only if there are traces in the workspace:
    > Here are your recent traces.
    Show traces from the last 24 hours.
 
-4. **`/orq:analytics`** — Show a performance snapshot if data exists.
-
-5. **`/orq:models`** — List available models.
+3. **`/orq:models`** — List available models.
 
 If the workspace is empty, skip the data-dependent commands and note:
 > Your workspace is empty — that's expected for a new setup! Use the `build-agent` skill to create your first agent.

@@ -51,13 +51,11 @@ Quick-action slash commands for common operations. Commands are thin orchestrato
 | Command | What It Does | Usage |
 |---------|-------------|-------|
 | **quickstart** | Interactive onboarding — credentials, MCP setup, tour | `/orq:quickstart` |
-| **invoke** | Test an agent or deployment and display the response | `/orq:invoke <name> "message"` |
 | **workspace** | Show workspace overview — agents, deployments, prompts, datasets, experiments | `/orq:workspace [section]` |
 | **traces** | Query and summarize traces with filters — debugging entry point | `/orq:traces [--deployment <name>] [--status <status>] [--last <duration>]` |
-| **analytics** | Performance metrics — latency, cost, token usage, error rates | `/orq:analytics [--deployment <name>] [--last <duration>]` |
 | **models** | List available AI models and capabilities | `/orq:models [search-term]` |
 
-**Commands vs skills:** Commands are for quick, focused actions (invoke, list, query). Skills are for multi-step workflows that require reasoning and decision-making (build, evaluate, optimize).
+**Commands vs skills:** Commands are for quick, focused actions (list, query, inspect). Skills are for multi-step workflows that require reasoning and decision-making (build, evaluate, optimize).
 
 ## Available Skills
 
@@ -84,11 +82,6 @@ Commands are invoked with `/orq:<command>` in Claude Code.
 Interactive onboarding — set up credentials, connect to orq.ai, and tour all commands and skills.
 
 ```
-/orq:invoke support-bot "What's your return policy?"
-```
-Test an agent or deployment and display the response.
-
-```
 /orq:workspace
 ```
 Show workspace overview — agents, deployments, prompts, datasets, experiments.
@@ -97,11 +90,6 @@ Show workspace overview — agents, deployments, prompts, datasets, experiments.
 /orq:traces --status error --last 24h
 ```
 Query and summarize traces. Useful as a debugging entry point before deeper analysis.
-
-```
-/orq:analytics --last 7d
-```
-View performance metrics — latency, cost, token usage, error rates.
 
 ```
 /orq:models gpt
