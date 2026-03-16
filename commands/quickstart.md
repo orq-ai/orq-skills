@@ -3,6 +3,7 @@ description: Interactive onboarding guide — set up credentials, connect to orq
 argument-hint:
 allowed-tools: Bash, AskUserQuestion, orq*
 ---
+<!-- Note: Bash is kept for env var check and MCP setup command only. All data fetching uses MCP tools. -->
 
 # Quickstart
 
@@ -63,39 +64,21 @@ If `NOT_SET`, repeat the setup instructions above. If `SET`, continue to Section
 
 ### 4. Verify Connection
 
-Test the connection to orq.ai. Try MCP tools first, fall back to curl.
+Test the connection by making an MCP call: use `search_entities` with `type: "agent"`.
 
-**curl fallback:**
-```bash
-curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $ORQ_API_KEY" "https://api.orq.ai/v2/agents"
-```
-
-- **200** — Connection successful. Show a workspace snapshot by running the equivalent of `/orq:workspace` inline (fetch and display agents, deployments, prompts, datasets, experiments).
-- **401/403** — "Authentication failed. Your API key may be invalid or expired. Go to [my.orq.ai](https://my.orq.ai) → Settings → API Keys to generate a new one."
-- **Network error** — "Could not reach the orq.ai API. Check your internet connection."
-
-On success, use `AskUserQuestion` to ask:
-
-- **"Set up MCP server (recommended)"** → Go to Section 5
-- **"Skip MCP, use curl fallback"** → Go to Section 6
-
-### 5. MCP Server Setup
-
-Guide the user through installing the orq.ai MCP server:
+- **Success** — Connection verified. Show a workspace snapshot by running the equivalent of `/orq:workspace` inline (use `search_entities` for agents, deployments, prompts, datasets, experiments — all in parallel).
+- **Auth error** — "Authentication failed. Your API key may be invalid or expired. Go to [my.orq.ai](https://my.orq.ai) → Settings → API Keys to generate a new one."
+- **MCP not available** — Guide the user to set up the MCP server:
 
 > Run this command in your terminal to add the orq.ai MCP server:
 >
 > ```bash
 > claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp --header "Authorization: Bearer ${ORQ_API_KEY}"
 > ```
+>
+> Then restart Claude Code and come back: `/orq:quickstart`
 
-After setup, verify by making a simple MCP tool call (e.g., listing agents via MCP).
-
-Note: The curl fallback works automatically if MCP is unavailable, so the plugin works either way.
-
-Continue to Section 6.
-
-### 6. Test Drive
+### 5. Test Drive
 
 Run a quick tour of commands, adapting to what's in the workspace:
 
@@ -116,7 +99,7 @@ Run a quick tour of commands, adapting to what's in the workspace:
 If the workspace is empty, skip the data-dependent commands and note:
 > Your workspace is empty — that's expected for a new setup! Use the `build-agent` skill to create your first agent.
 
-### 7. Skills Overview
+### 6. Skills Overview
 
 Present the six skills in a table:
 
@@ -140,7 +123,7 @@ Explain the lifecycle:
 >
 > Skills are auto-discovered — just describe what you want to do in natural language and the right skill will activate.
 
-### 8. What's Next?
+### 7. What's Next?
 
 Use `AskUserQuestion` to route the user to their next task:
 
