@@ -1,7 +1,7 @@
 ---
 description: Query and summarize traces with filters — debugging entry point before analyze-trace-failures
 argument-hint: [--deployment <name>] [--status <status>] [--last <duration>] [--limit <n>]
-allowed-tools: Bash, AskUserQuestion, orq*
+allowed-tools: AskUserQuestion, orq*
 ---
 
 # Traces
@@ -10,17 +10,7 @@ Query production traces from the orq.ai platform and display a summary. Use this
 
 ## Instructions
 
-### 1. Validate environment
-
-Check that `$ORQ_API_KEY` is set:
-
-```bash
-if [ -z "$ORQ_API_KEY" ]; then echo "ERROR: ORQ_API_KEY is not set"; exit 1; fi
-```
-
-If missing, tell the user to set it and stop.
-
-### 2. Parse arguments
+### 1. Parse arguments
 
 Extract filters from `$ARGUMENTS`. All are optional:
 
@@ -33,29 +23,25 @@ If `$ARGUMENTS` is empty, use defaults (last 24h, limit 20, no filters).
 
 If the user provides plain text instead of flags (e.g., `/orq:traces errors from today`), interpret the intent and map to the appropriate filters.
 
-### 3. Convert time window
+### 2. Build filter string
 
-Convert the `--last` duration to an ISO 8601 timestamp for the API query:
+The `list_traces` MCP tool uses Typesense filter syntax. Build the `filter` parameter from parsed arguments:
 
-```bash
-date -u -v-24H +"%Y-%m-%dT%H:%M:%SZ"  # macOS: 24 hours ago
-```
+- **Status filter:** `status:=ERROR` or `status:=OK`
+- **Model filter:** `attr_kv:=gen_ai.request.model=<model>`
+- **Combined:** join with ` && `
 
-Adjust the offset based on the duration provided.
+Use `list_registry_keys` and `list_registry_values` to discover available filter keys if needed.
 
-### 4. Fetch traces
+### 3. Fetch traces
 
-Try MCP tools first, fall back to `curl` if unavailable.
+Use the `list_traces` MCP tool with the constructed filter, limit, and sort parameters.
 
-**curl fallback:**
-```bash
-curl -s -H "Authorization: Bearer $ORQ_API_KEY" \
-  "https://api.orq.ai/v2/traces?limit=LIMIT&start_date=START_DATE"
-```
+- `limit`: from `--limit` or default 25
+- `filter`: from step 2 (omit if no filters)
+- `sort_by`: `"timestamp:desc"` (default)
 
-Add query parameters based on parsed filters (deployment, status, date range).
-
-### 5. Display the summary
+### 4. Display the summary
 
 Present traces in a scannable format, not raw JSON.
 
@@ -83,14 +69,14 @@ Adapt fields based on what the API returns. Prioritize: timestamp, entity, error
 - Cap each group at 10 items. If there are more, show the count.
 - Include the trace ID so the user can reference it in follow-up.
 
-### 6. Suggest next steps
+### 5. Suggest next steps
 
 After displaying traces, if there are errors, suggest:
 
 > "To analyze these failures in depth, use the `analyze-trace-failures` skill."
 
-### 7. Error handling
+### 6. Error handling
 
-- **401/403** — "Authentication failed. Check that your `ORQ_API_KEY` is valid."
+- **Auth errors** — "Authentication failed. Check that your `ORQ_API_KEY` is valid."
 - **No traces found** — "No traces found matching your filters. Try broadening the time window or removing filters."
-- **Network error** — "Could not reach the orq.ai API. Check your internet connection."
+- **MCP errors** — "Could not reach the orq.ai MCP server. Make sure it's configured: `claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp --header 'Authorization: Bearer ${ORQ_API_KEY}'`"

@@ -1,7 +1,7 @@
 ---
 description: Show a workspace overview — agents, deployments, prompts, datasets, and experiments
 argument-hint: [section]
-allowed-tools: Bash, AskUserQuestion, orq*
+allowed-tools: AskUserQuestion, orq*
 ---
 
 # Workspace
@@ -10,17 +10,7 @@ Show a quick overview of the user's orq.ai workspace. Optionally filter to a spe
 
 ## Instructions
 
-### 1. Validate environment
-
-Check that `$ORQ_API_KEY` is set:
-
-```bash
-if [ -z "$ORQ_API_KEY" ]; then echo "ERROR: ORQ_API_KEY is not set"; exit 1; fi
-```
-
-If missing, tell the user to set it and stop.
-
-### 2. Parse arguments
+### 1. Parse arguments
 
 `$ARGUMENTS` is optional. If provided, it narrows the output to a specific section:
 - `agents` — show only agents
@@ -31,36 +21,17 @@ If missing, tell the user to set it and stop.
 
 If empty, show all sections.
 
-### 3. Fetch data
+### 2. Fetch data
 
-Try MCP tools first, fall back to `curl` if unavailable. Fetch only the sections needed based on arguments.
+Use the `search_entities` MCP tool to fetch each section. Run all applicable calls in parallel.
 
-**Agents:**
-```bash
-curl -s -H "Authorization: Bearer $ORQ_API_KEY" "https://api.orq.ai/v2/agents"
-```
+- **Agents:** `search_entities` with `type: "agent"`
+- **Deployments:** `search_entities` with `type: "deployment"`
+- **Prompts:** `search_entities` with `type: "prompt"`
+- **Datasets:** `search_entities` with `type: "dataset"`
+- **Experiments:** `search_entities` with `type: "experiment"`
 
-**Deployments:**
-```bash
-curl -s -H "Authorization: Bearer $ORQ_API_KEY" "https://api.orq.ai/v2/deployments"
-```
-
-**Prompts:**
-```bash
-curl -s -H "Authorization: Bearer $ORQ_API_KEY" "https://api.orq.ai/v2/prompts"
-```
-
-**Datasets:**
-```bash
-curl -s -H "Authorization: Bearer $ORQ_API_KEY" "https://api.orq.ai/v2/datasets"
-```
-
-**Experiments:**
-```bash
-curl -s -H "Authorization: Bearer $ORQ_API_KEY" "https://api.orq.ai/v2/experiments"
-```
-
-Run all applicable requests in parallel using multiple Bash calls.
+Fetch only the sections needed based on arguments.
 
 ### 4. Display the overview
 
@@ -98,8 +69,8 @@ Adapt the fields based on what the API actually returns. Show the most useful at
 - If a section is empty, show `(none)` instead of omitting it.
 - Cap each section at 10 items. If there are more, show the count and say "... and N more".
 
-### 5. Error handling
+### 4. Error handling
 
-- **401/403** — "Authentication failed. Check that your `ORQ_API_KEY` is valid."
-- **Network error** — "Could not reach the orq.ai API. Check your internet connection."
-- **Partial failure** — If some endpoints fail but others succeed, show what you have and note which sections failed.
+- **Auth errors** — "Authentication failed. Check that your `ORQ_API_KEY` is valid."
+- **MCP errors** — "Could not reach the orq.ai MCP server. Make sure it's configured: `claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp --header 'Authorization: Bearer ${ORQ_API_KEY}'`"
+- **Partial failure** — If some calls fail but others succeed, show what you have and note which sections failed.

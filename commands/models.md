@@ -1,7 +1,7 @@
 ---
 description: List available AI models and their capabilities
 argument-hint: [search-term]
-allowed-tools: Bash, AskUserQuestion, orq*
+allowed-tools: AskUserQuestion, orq*
 ---
 
 # Models
@@ -10,32 +10,20 @@ List the AI models available in the user's orq.ai workspace. Optionally filter b
 
 ## Instructions
 
-### 1. Validate environment
-
-Check that `$ORQ_API_KEY` is set:
-
-```bash
-if [ -z "$ORQ_API_KEY" ]; then echo "ERROR: ORQ_API_KEY is not set"; exit 1; fi
-```
-
-If missing, tell the user to set it and stop.
-
-### 2. Parse arguments
+### 1. Parse arguments
 
 `$ARGUMENTS` is optional. If provided, use it as a search term to filter models (e.g., "gpt-4", "claude", "embedding", "anthropic").
 
 The search should be case-insensitive and match against model name, provider, or capabilities.
 
-### 3. Fetch data
+If the search term matches a model type (e.g., "chat", "embedding", "image", "tts", "stt", "rerank", "ocr"), use it as the `modelType` parameter directly.
 
-Try MCP tools first, fall back to `curl` if unavailable.
+### 2. Fetch data
 
-**MCP path:** Use `list_models` to retrieve available models.
+Use the `list_models` MCP tool to retrieve available models.
 
-**curl fallback:**
-```bash
-curl -s -H "Authorization: Bearer $ORQ_API_KEY" "https://api.orq.ai/v2/models"
-```
+- If a model type was identified from the search term, pass it as `modelType`.
+- Otherwise, fetch all relevant types by calling `list_models` in parallel for: `chat`, `embedding`, and any other types of interest.
 
 ### 4. Display models
 
@@ -74,7 +62,7 @@ Adapt the fields based on what the API actually returns. Show the most useful at
 - If no models match the search term, say "No models found matching '<term>'. Try a broader search."
 - Cap the list at 50 models per provider. If there are more, show the count and say "... and N more".
 
-### 5. Error handling
+### 4. Error handling
 
-- **401/403** — "Authentication failed. Check that your `ORQ_API_KEY` is valid."
-- **Network error** — "Could not reach the orq.ai API. Check your internet connection."
+- **Auth errors** — "Authentication failed. Check that your `ORQ_API_KEY` is valid."
+- **MCP errors** — "Could not reach the orq.ai MCP server. Make sure it's configured: `claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp --header 'Authorization: Bearer ${ORQ_API_KEY}'`"
