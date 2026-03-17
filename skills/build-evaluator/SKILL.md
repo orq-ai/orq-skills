@@ -64,7 +64,8 @@ Use the orq MCP server (`https://my.orq.ai/v2/mcp`) as the primary interface. Fo
 **HTTP API fallback** (for operations not yet in MCP):
 
 ```bash
-# List existing evaluators
+# List existing evaluators (paginated: returns {data: [...], has_more: bool})
+# Use ?limit=N to control page size. If has_more is true, fetch the next page with ?after=<last_id>
 curl -s https://my.orq.ai/v2/evaluators \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
