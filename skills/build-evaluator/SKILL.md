@@ -1,7 +1,7 @@
 ---
 name: build-evaluator
 description: Create validated LLM-as-a-Judge evaluators following best practices — binary Pass/Fail judges with TPR/TNR validation for measuring specific failure modes
-allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, Task, AskUserQuestion, mcp__linear-server__*, orq*
+allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, Task, AskUserQuestion, orq*
 ---
 
 # Build Evaluator
@@ -12,12 +12,9 @@ allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, Task, AskUserQuest
 - `generate-synthetic-dataset` — generate test data for evaluator validation
 - `optimize-prompt` — iterate on prompts based on evaluator results
 - `build-agent` — create agents that evaluators assess
+- `prompt-learning` — uses evaluator scores as AI feedback to generate prompt rules
 
 Design and create production-grade LLM evaluators on the orq.ai platform, grounded in evaluation best practices.
-
-**Companion skills:**
-- `prompt-learning` — uses evaluator scores as AI feedback to generate prompt rules
-- `run-experiment` — run experiments using evaluators built with this skill
 
 ## When to use
 
@@ -67,7 +64,8 @@ Use the orq MCP server (`https://my.orq.ai/v2/mcp`) as the primary interface. Fo
 **HTTP API fallback** (for operations not yet in MCP):
 
 ```bash
-# List existing evaluators
+# List existing evaluators (paginated: returns {data: [...], has_more: bool})
+# Use ?limit=N to control page size. If has_more is true, fetch the next page with ?after=<last_id>
 curl -s https://my.orq.ai/v2/evaluators \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
