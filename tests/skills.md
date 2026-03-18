@@ -42,11 +42,6 @@ Requires `setup.md` to have run first (seed data for `run-experiment` test).
 - Ask: "Run an experiment using orq-skills-test-dataset with orq-skills-test-eval-length"
 - Verify: calls `create_experiment` with correct references
 
-## `prompt-learning`
-
-- Ask: "Improve my general-purpose chatbot prompt from feedback"
-- Verify: warns that broad domains don't benefit, suggests `optimize-prompt` instead
-
 ---
 
 ## Critical Files
@@ -57,4 +52,3 @@ Requires `setup.md` to have run first (seed data for `run-experiment` test).
 - `skills/optimize-prompt/SKILL.md`
 - `skills/analyze-trace-failures/SKILL.md`
 - `skills/run-experiment/SKILL.md`
-- `skills/prompt-learning/SKILL.md`
