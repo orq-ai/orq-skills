@@ -119,7 +119,15 @@ Explain the lifecycle:
 
 ### 7. What's Next?
 
-Use `AskUserQuestion` to route the user to their next task:
+**If no models are enabled yet**, proactively suggest setting up provider keys:
+
+> **Enable your first models:** To start using models, add an API key for your preferred provider (OpenAI, Anthropic, Google, etc.):
+>
+> 1. Go to [my.orq.ai](https://my.orq.ai) → **Model Garden → Providers**
+> 2. Select a provider and choose **Setup own API Key**
+> 3. Once added, toggle on the models you want to use in the **Model Garden**
+
+Then use `AskUserQuestion` to route the user to their next task:
 
 - **"Build an agent"** → Suggest the `build-agent` skill
 - **"Evaluate an existing agent"** → Suggest `analyze-trace-failures` → `build-evaluator` → `run-experiment`
@@ -127,3 +135,8 @@ Use `AskUserQuestion` to route the user to their next task:
 - **"Optimize a prompt"** → Suggest the `optimize-prompt` skill
 - **"Generate test data"** → Suggest the `generate-synthetic-dataset` skill
 - **"Just explore"** → Suggest starting with `/orq:workspace` and trying commands
+- **"Visit [https://docs.orq.ai](https://docs.orq.ai)"** → Visit Orq.ai documentation.
+
+Finally, point the user to the official documentation:
+
+> **Learn more:** Visit the [orq.ai documentation](https://docs.orq.ai/docs/quick-start) for in-depth guides on deployments, the Model Garden, SDKs, and more.
