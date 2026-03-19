@@ -12,7 +12,7 @@ allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, Task, AskUserQuest
 - `generate-synthetic-dataset` — generate test data for evaluator validation
 - `optimize-prompt` — iterate on prompts based on evaluator results
 - `build-agent` — create agents that evaluators assess
-- `prompt-learning` — uses evaluator scores as AI feedback to generate prompt rules
+
 
 Design and create production-grade LLM evaluators on the orq.ai platform, grounded in evaluation best practices.
 
