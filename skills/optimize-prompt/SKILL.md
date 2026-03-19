@@ -56,6 +56,8 @@ Trigger phrases and scenarios:
 
 ## orq.ai Documentation
 
+> **Official documentation:** [Prompt Engineering Guide — Best Practices](https://docs.orq.ai/docs/prompts/engineering-guide#prompt-engineering-guide-best-practices)
+
 [Prompts](https://docs.orq.ai/docs/prompts/overview) · [Prompt Management](https://docs.orq.ai/docs/prompts/management) · [Versioning](https://docs.orq.ai/docs/prompts/versioning) · [Deployments](https://docs.orq.ai/docs/deployments/overview)
 
 ### orq MCP Tools
