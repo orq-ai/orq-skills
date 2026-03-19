@@ -60,6 +60,8 @@ Evaluator Build Progress:
 
 ## orq.ai Documentation
 
+> **Official documentation:** [Evaluators API — Programmatic Evaluation Setup](https://docs.orq.ai/docs/evaluators/api-usage#evaluators-api-programmatic-evaluation-setup)
+
 [Evaluators](https://docs.orq.ai/docs/evaluators/overview) · [Creating Evaluators](https://docs.orq.ai/docs/evaluators/creating) · [Evaluator Library](https://docs.orq.ai/docs/evaluators/library) · [Evaluators API](https://docs.orq.ai/docs/evaluators/api-usage) · [Human Review](https://docs.orq.ai/docs/evaluators/human-review) · [Datasets](https://docs.orq.ai/docs/datasets/overview) · [Traces](https://docs.orq.ai/docs/observability/traces)
 
 ### orq.ai LLM Evaluator Details
