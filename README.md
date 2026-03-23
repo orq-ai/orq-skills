@@ -33,24 +33,29 @@ claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp \
 
 ### Install orq-skills
 
-Pick one method:
-
+**Option 1: Claude Code plugin (recommended)** — installs skills, commands, and agents:
 ```bash
-# Option 1: npx skills CLI (works with Cursor, Gemini CLI, etc.)
-npx skills add orq-ai/orq-skills
-
-# Option 2: Claude Code plugin marketplace
+# Via marketplace
 /plugin marketplace add orq-ai/orq-skills
 /plugin install orq@orq-skills
 
-# Option 3: Direct from GitHub
+# Or directly from GitHub
 /plugin install github:orq-ai/orq-skills
+```
 
-# Option 4: Manual clone
+**Option 2: npx skills CLI** — installs skills only (works with Cursor, Gemini CLI, etc.):
+```bash
+npx skills add orq-ai/orq-skills
+```
+
+**Option 3: Manual clone** — with Claude Code:
+```bash
 git clone https://github.com/orq-ai/orq-skills.git
 cd orq-skills
 claude --plugin-dir .
 ```
+
+> **Note:** Commands (`/orq:quickstart`, `/orq:workspace`, etc.) and agents are only available when installed as a Claude Code plugin.
 
 
 ### Verify
