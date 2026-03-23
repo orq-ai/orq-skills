@@ -10,17 +10,25 @@ Built on the [Agent Skills](https://agentskills.io/home#adoption) standard forma
 
 ## Installation
 
-Using npx skills (Cursor, Claude Code, Gemini CLI, etc.)
+To install these skills on any compatible coding agent, use `npx skills` (such as Cursor, Claude Code, Gemini CLI, etc.).
 ```bash
 npx skills add orq-ai/orq-skills
 ```
 
-Using Claude Code Plugin Manager
+### Claude Code
+
+Using the plugin marketplace:
 ```bash
-/plugin install orq-ai@orq-skills
+/plugin marketplace add orq-ai/orq-skills
+/plugin install orq@orq-skills
 ```
 
-Manual: clone and point your agent to the directory
+Or install directly from GitHub:
+```bash
+/plugin install github:orq-ai/orq-skills
+```
+
+Manual: clone and point your agent to the directory:
 ```bash
 git clone https://github.com/orq-ai/orq-skills.git
 cd orq-skills
