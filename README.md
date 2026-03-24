@@ -10,6 +10,8 @@ Each skill encodes best practices from prompt engineering, agent design, evaluat
 
 Built on the [Agent Skills](https://agentskills.io/home#adoption) standard format, so it works with any compatible agent (Claude Code, Cursor, Gemini CLI, and others).
 
+**Using Claude Code?** Check out [orq-ai/claude-plugins](https://github.com/orq-ai/claude-plugins) — it bundles orq-skills with **orq-trace** (automatic session tracing) and **orq-mcp** (workspace MCP server) in a single install.
+
 ## Setup
 
 ### Prerequisites
@@ -52,7 +54,6 @@ claude --plugin-dir .
 
 > **Note:** Commands (`/orq:quickstart`, `/orq:workspace`, etc.) and agents are only available when installed as a Claude Code plugin.
 
-
 ### Verify
 
 Run the interactive onboarding to confirm everything works:
@@ -93,6 +94,7 @@ Skills are triggered by describing what you need. Claude picks the right skill a
 <!-- BEGIN_SKILLS_TABLE -->
 | Skill | What It Does | Documentation |
 |-------|-------------|---------------|
+| **instrument-app** | Instrument LLM applications with orq.ai observability — AI Router proxy, OpenTelemetry, `@traced` decorator, and trace enrichment | [SKILL.md](skills/instrument-app/SKILL.md) |
 | **build-agent** | Design, create, and configure an orq.ai Agent with tools, instructions, knowledge bases, and memory | [SKILL.md](skills/build-agent/SKILL.md) |
 | **build-evaluator** | Create validated LLM-as-a-Judge evaluators following evaluation best practices | [SKILL.md](skills/build-evaluator/SKILL.md) |
 | **analyze-trace-failures** | Read production traces, identify what's failing, build failure taxonomies, and categorize issues | [SKILL.md](skills/analyze-trace-failures/SKILL.md) |
