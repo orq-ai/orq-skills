@@ -6,6 +6,12 @@ Requires `setup.md` to have run first (seed data for `run-experiment` test).
 
 ---
 
+## `setup-observability`
+
+- Ask: "Help me add orq.ai tracing to my app"
+- Verify: scans project for framework imports and existing instrumentation
+- Verify: recommends integration mode (AI Router vs Observability) based on findings
+
 ## `build-agent`
 
 - Ask: "Build a simple FAQ agent for a pizza restaurant"
@@ -46,6 +52,7 @@ Requires `setup.md` to have run first (seed data for `run-experiment` test).
 
 ## Critical Files
 
+- `skills/setup-observability/SKILL.md`
 - `skills/build-agent/SKILL.md`
 - `skills/build-evaluator/SKILL.md`
 - `skills/generate-synthetic-dataset/SKILL.md`

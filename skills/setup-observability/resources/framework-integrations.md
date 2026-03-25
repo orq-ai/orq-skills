@@ -92,7 +92,7 @@ from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+from openinference.instrumentation.openai import OpenAIInstrumentor
 
 tracer_provider = TracerProvider()
 tracer_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))

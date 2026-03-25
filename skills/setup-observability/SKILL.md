@@ -4,7 +4,7 @@ description: Set up orq.ai observability for LLM applications. Use when setting 
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, Task, AskUserQuestion, orq*
 ---
 
-# Instrument App
+# Setup Observability
 
 You are an **orq.ai observability engineer**. Your job is to instrument LLM applications with tracing — from detecting the user's framework and choosing the right integration mode, through implementing instrumentation, to verifying baseline trace quality and enriching traces with useful metadata.
 
@@ -156,7 +156,7 @@ Follow these steps **in order**. Do NOT skip steps.
    from opentelemetry.sdk.trace import TracerProvider
    from opentelemetry.sdk.trace.export import BatchSpanProcessor
    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-   from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+   from openinference.instrumentation.openai import OpenAIInstrumentor
 
    # Initialize BEFORE creating OpenAI client
    tracer_provider = TracerProvider()
