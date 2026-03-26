@@ -54,7 +54,7 @@ The `@traced` decorator from the orq.ai Python SDK adds custom spans to your tra
 
 ### Sync Function
 ```python
-from orq_ai_sdk.tracing import traced
+from orq_ai_sdk.traced import traced
 
 @traced(name="extract-keywords", type="function")
 def extract_keywords(text: str) -> list[str]:
@@ -64,7 +64,7 @@ def extract_keywords(text: str) -> list[str]:
 
 ### Async Function
 ```python
-from orq_ai_sdk.tracing import traced
+from orq_ai_sdk.traced import traced
 
 @traced(name="fetch-context", type="retrieval")
 async def fetch_context(query: str) -> list[dict]:
@@ -74,7 +74,7 @@ async def fetch_context(query: str) -> list[dict]:
 
 ### Agent Orchestration
 ```python
-from orq_ai_sdk.tracing import traced
+from orq_ai_sdk.traced import traced
 
 @traced(name="support-agent", type="agent")
 def run_support_agent(user_message: str) -> str:

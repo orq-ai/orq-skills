@@ -18,7 +18,7 @@ You are an **orq.ai observability engineer**. Your job is to instrument LLM appl
 - **ALWAYS** prefer AI Router mode when the user's framework supports it — it's the fastest path to traces with zero instrumentation code.
 - **ALWAYS** set `service.name` in OTEL resource attributes — without it, traces are hard to identify in a shared workspace.
 
-**Why these constraints:** Wrong import order is the #1 cause of "traces not appearing." Generic names make traces unfindable at scale. Logging PII creates compliance risk. Framework instrumentors capture 10x more metadata than manual tracing with less code.
+**Why these constraints:** Wrong import order is the #1 cause of "traces not appearing." Generic names make traces unfindable at scale. Logging PII creates compliance risk. Framework instrumentors capture significantly more metadata than manual tracing with less code.
 
 ## Companion Skills
 
@@ -139,11 +139,11 @@ Follow these steps **in order**. Do NOT skip steps.
    For framework-specific setup (LangChain, CrewAI, etc.), refer to the framework's docs page linked in [resources/framework-integrations.md](resources/framework-integrations.md).
 
 6. **For Observability mode:**
-   - Set OTEL environment variables:
+   - Set OTEL environment variables. **Warning:** If the project already has OpenTelemetry configured (e.g., for Datadog, Jaeger, or another backend), check for existing `OTEL_*` env vars or `TracerProvider` setup first — setting these will override that configuration. Confirm with the user before overwriting.
      ```bash
      export OTEL_EXPORTER_OTLP_ENDPOINT="https://api.orq.ai/v2/otel"
      export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer $ORQ_API_KEY"
-     export OTEL_RESOURCE_ATTRIBUTES="service.name=my-app,service.version=1.0.0"
+     export OTEL_RESOURCE_ATTRIBUTES="service.name=<your-app-name>,service.version=1.0.0"
      export OTEL_EXPORTER_OTLP_TRACES_PROTOCOL="http/json"
      ```
    - Install the framework's OpenInference instrumentor package
@@ -164,6 +164,8 @@ Follow these steps **in order**. Do NOT skip steps.
    trace.set_tracer_provider(tracer_provider)
    OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
    ```
+
+   > **Note:** The import order above is critical — instrumentors must be initialized before framework clients. If the project uses an auto-formatter (isort, Ruff), add `# isort:skip_file` at the top of the file or `# noqa: E402` on late imports to prevent reordering.
 
 7. **For both modes:** Set up AI Router first (step 5), then add Observability (step 6) for framework-level spans on top.
 

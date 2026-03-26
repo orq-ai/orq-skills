@@ -68,7 +68,7 @@ const client = new OpenAI({
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
-    model="gpt-4o",
+    model="openai/gpt-4o",
     api_key=os.getenv("ORQ_API_KEY"),
     base_url="https://api.orq.ai/v2/router",
 )
@@ -82,7 +82,7 @@ All observability integrations use OpenInference instrumentors with OTLP export 
 ```bash
 export OTEL_EXPORTER_OTLP_ENDPOINT="https://api.orq.ai/v2/otel"
 export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer $ORQ_API_KEY"
-export OTEL_RESOURCE_ATTRIBUTES="service.name=my-app,service.version=1.0.0"
+export OTEL_RESOURCE_ATTRIBUTES="service.name=<your-app-name>,service.version=1.0.0"
 export OTEL_EXPORTER_OTLP_TRACES_PROTOCOL="http/json"
 ```
 
