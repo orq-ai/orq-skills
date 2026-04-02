@@ -38,12 +38,25 @@ claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp \
 /plugin install github:orq-ai/orq-skills
 ```
 
-**Option 2: npx skills CLI** — installs skills only (works with Cursor, Gemini CLI, etc.):
+**Option 2: Cursor plugin** — installs skills and MCP config:
+```bash
+# Symlink or copy to ~/.cursor/plugins/local/orq
+ln -s /path/to/orq-skills ~/.cursor/plugins/local/orq
+```
+
+**Option 3: Codex plugin** — installs skills and MCP config:
+```bash
+# Add to your repo marketplace (.agents/plugins/marketplace.json)
+# or personal marketplace (~/.agents/plugins/marketplace.json)
+```
+See [Codex plugin docs](https://developers.openai.com/codex/plugins/build) for installation details.
+
+**Option 4: npx skills CLI** — installs skills only (works with Cursor, Gemini CLI, etc.):
 ```bash
 npx skills add orq-ai/orq-skills
 ```
 
-**Option 3: Manual clone** — with Claude Code:
+**Option 5: Manual clone** — with Claude Code:
 ```bash
 git clone https://github.com/orq-ai/orq-skills.git
 cd orq-skills
