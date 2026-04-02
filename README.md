@@ -43,11 +43,13 @@ claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp \
 # Symlink or copy to ~/.cursor/plugins/local/orq
 ln -s /path/to/orq-skills ~/.cursor/plugins/local/orq
 ```
+Cursor discovers components from default paths (`skills/`, `mcp.json`) in the plugin root.
 
 **Option 3: Codex plugin** — installs skills and MCP config:
 ```bash
-# Add to your repo marketplace (.agents/plugins/marketplace.json)
-# or personal marketplace (~/.agents/plugins/marketplace.json)
+# This repository includes a ready marketplace entry at:
+# .agents/plugins/marketplace.json
+# (plugin source path: "./plugins/orq")
 ```
 See [Codex plugin docs](https://developers.openai.com/codex/plugins/build) for installation details.
 
@@ -68,10 +70,28 @@ claude --plugin-dir .
 
 ### Verify
 
-Run the interactive onboarding to confirm everything works:
+Run the interactive onboarding to confirm Claude setup:
 
 ```
 /orq:quickstart
+```
+
+Smoke test Cursor:
+
+1. Restart Cursor after installing/symlinking the plugin.
+2. Open Cursor settings and confirm `orq` skills are available.
+3. Open MCP settings and confirm `orq-workspace` can be enabled from `mcp.json`.
+
+Smoke test Codex:
+
+1. Ensure Codex can read this repository's `.agents/plugins/marketplace.json`.
+2. Install the `orq` plugin from that marketplace.
+3. Confirm the plugin exposes skills and the `orq-workspace` MCP server.
+
+Validate manifests:
+
+```bash
+tests/scripts/validate-plugin-manifests.sh
 ```
 
 ---
