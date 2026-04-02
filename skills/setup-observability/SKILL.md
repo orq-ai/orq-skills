@@ -150,7 +150,7 @@ Follow these steps **in order**. Do NOT skip steps.
    - Initialize the instrumentor BEFORE creating SDK clients
    - Refer to the framework's docs page for the exact instrumentor and setup
 
-   **Python (OpenAI example):**
+   **Python (OpenAI example):** *(Node.js uses `@opentelemetry/sdk-node` — see [Integration Overview](https://docs.orq.ai/docs/integrations/overview) for Node.js setup)*
    ```python
    from opentelemetry import trace
    from opentelemetry.sdk.trace import TracerProvider
@@ -205,7 +205,7 @@ Follow these steps **in order**. Do NOT skip steps.
     | Customer/tenant identifiers | `customer_id` or tier tag |
     | Feedback collection, ratings | Score annotations |
 
-14. **Add `@traced` for custom spans** where the user has application logic not captured by framework instrumentors. See [resources/traced-decorator-guide.md](resources/traced-decorator-guide.md) for the full reference.
+14. **Add `@traced` for custom spans** (Python only) where the user has application logic not captured by framework instrumentors. For Node.js, use OpenTelemetry span APIs directly. See [resources/traced-decorator-guide.md](resources/traced-decorator-guide.md) for the full Python reference.
 
     Priority targets for `@traced`:
     - The top-level orchestration function (type: `agent`)

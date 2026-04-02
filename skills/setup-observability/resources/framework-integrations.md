@@ -7,6 +7,7 @@
 | **AI Router** | Route LLM calls through `https://api.orq.ai/v2/router` — traces generated automatically | You want multi-provider access, fallbacks, caching, cost tracking with zero instrumentation code |
 | **Observability** | Send OpenTelemetry traces from your existing setup to `https://api.orq.ai/v2/otel` | You already call providers directly and want to add tracing without changing your LLM calls |
 | **Both** | AI Router for routing + Observability for framework-level spans | You want full pipeline visibility: framework orchestration spans + LLM call traces |
+| **Control Tower** | Full agent lifecycle management — deploy, monitor, and control agents from the orq.ai dashboard | Framework has native orq.ai integration for agent orchestration (currently: LangGraph, OpenAI Agents, Vercel AI SDK) |
 
 **Rule of thumb:** If the user's framework is in the AI Router column, start there — it's the fastest path to traces. Add Observability on top only if they need framework-level span detail (agent steps, tool calls, chain execution).
 
@@ -46,6 +47,7 @@ All AI Router integrations follow the same pattern — point your SDK's base URL
 **Python (OpenAI SDK):**
 ```python
 from openai import OpenAI
+import os
 
 client = OpenAI(
     base_url="https://api.orq.ai/v2/router",
@@ -66,6 +68,7 @@ const client = new OpenAI({
 **LangChain:**
 ```python
 from langchain_openai import ChatOpenAI
+import os
 
 llm = ChatOpenAI(
     model="openai/gpt-4o",
@@ -102,3 +105,5 @@ OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
 ```
 
 **Key:** Each framework has its own OpenInference instrumentor package. See the framework-specific docs page for the exact package name and import.
+
+> **Node.js/TypeScript:** The Observability examples above are Python-only. For Node.js OTEL setup, use `@opentelemetry/sdk-node` with `@opentelemetry/exporter-trace-otlp-http` and framework-specific instrumentors from the `@opentelemetry/instrumentation-*` namespace (not OpenInference). See the [orq.ai Integration Overview](https://docs.orq.ai/docs/integrations/overview) for Node.js setup.

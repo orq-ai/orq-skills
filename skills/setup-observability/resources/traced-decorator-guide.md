@@ -1,8 +1,26 @@
 # The `@traced` Decorator
 
-The `@traced` decorator from the orq.ai Python SDK adds custom spans to your traces for application logic that isn't automatically captured by framework instrumentors.
+The `@traced` decorator from the orq.ai **Python** SDK adds custom spans to your traces for application logic that isn't automatically captured by framework instrumentors. Node.js/TypeScript does not have a `@traced` equivalent — use OpenTelemetry span APIs directly for custom spans in Node.js.
 
 **Docs:** [Custom Tracing using the @traced decorator](https://docs.orq.ai/docs/observability/traces#custom-tracing-using-the-@traced-decorator)
+
+## Prerequisites
+
+The orq.ai SDK client must be initialized before `@traced` will export spans:
+
+```python
+from orq_ai_sdk import Orq
+from orq_ai_sdk.traced import traced
+import os
+
+client = Orq(api_key=os.getenv("ORQ_API_KEY"))
+
+@traced(name="my-operation", type="function")
+def my_function():
+    ...
+```
+
+Without initializing `Orq(api_key=...)`, the `@traced` decorator will silently do nothing — no error, but no spans exported.
 
 ## When to Use
 
@@ -46,8 +64,8 @@ The `@traced` decorator from the orq.ai Python SDK adds custom spans to your tra
 |-----------|---------|-------|
 | `name` | function name | Use descriptive names: `"fetch-user-context"` not `"step1"` |
 | `type` | `"function"` | Pick the semantic type that matches the operation |
-| `capture_input` | `True` | Set `False` if inputs contain PII or secrets |
-| `capture_output` | `True` | Set `False` if outputs contain sensitive data |
+| `capture_input` | `True` | **Default captures all function args.** Set `False` if inputs contain PII or secrets |
+| `capture_output` | `True` | **Default captures all return values.** Set `False` if outputs contain sensitive data |
 | `attributes` | `{}` | Add searchable metadata: user tier, feature name, etc. |
 
 ## Examples

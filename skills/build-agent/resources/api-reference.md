@@ -21,8 +21,7 @@ Use the orq MCP server (`https://my.orq.ai/v2/mcp`) as the primary interface. Fo
 | `search_directories` | Discover workspace project structure and paths — useful for KB `path` selection |
 | `list_models` | List available models for agent configuration |
 | `create_llm_eval` | Create evaluators for quality comparison |
-| `get_evaluator_llm` | Retrieve an LLM evaluator by key or ID |
-| `get_evaluator_python` | Retrieve a Python evaluator by key or ID |
+| `evaluator_get` | Retrieve any evaluator by ID |
 | `list_traces` | Inspect traces for latency/cost data |
 
 ## HTTP API
