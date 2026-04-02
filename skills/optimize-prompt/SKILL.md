@@ -80,7 +80,8 @@ Use the orq MCP server (`https://my.orq.ai/v2/mcp`) as the primary interface. Fo
 
 | Tool | Purpose |
 |------|---------|
-| `search_entities` | Find prompts (`type: "prompt"`) and deployments |
+| `search_entities` | Find prompts (`type: "prompt"`), agents, and deployments |
+| `get_agent` | Retrieve an agent's current instructions for optimization |
 
 **HTTP API fallback** (for operations not yet in MCP):
 
@@ -225,7 +226,7 @@ After completing this skill, direct the user to the relevant platform page:
 
 When you need to look up orq.ai platform details, check in this order:
 
-1. **orq MCP tools** — query live data first (`search_entities`); API responses are always authoritative
+1. **orq MCP tools** — query live data first (`search_entities`, `get_agent`); API responses are always authoritative
 2. **orq.ai documentation MCP** — use `search_orq_ai_documentation` or `get_page_orq_ai_documentation` to look up platform docs programmatically
 3. **[docs.orq.ai](https://docs.orq.ai)** — browse official documentation directly
 4. **This skill file** — may lag behind API or docs changes
