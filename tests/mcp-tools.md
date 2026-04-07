@@ -31,8 +31,8 @@ Tests the orq.ai MCP server tools directly. Requires `setup.md` to have run firs
 
 16. `create_llm_eval` → key: `orq-skills-test-llm-eval`, with simple judge prompt
 17. `create_python_eval` → key: `orq-skills-test-py-eval`
-18. `get_evaluator_llm(key=orq-skills-test-llm-eval)` → verify returns prompt and model
-19. `get_evaluator_python(key=orq-skills-test-py-eval)` → verify returns code
+18. `evaluator_get(id=<llm-eval-id>)` → verify returns prompt and model
+19. `evaluator_get(id=<py-eval-id>)` → verify returns code
 
 ## Agent tools
 
