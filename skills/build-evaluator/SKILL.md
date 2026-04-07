@@ -94,6 +94,7 @@ Use the orq MCP server (`https://my.orq.ai/v2/mcp`) as the primary interface. Fo
 |------|---------|
 | `create_llm_eval` | Create an LLM evaluator with your judge prompt |
 | `create_python_eval` | Create a Python evaluator for code-based checks |
+| `evaluator_get` | Retrieve any evaluator by ID |
 | `list_models` | List available judge models |
 
 **HTTP API fallback** (for operations not yet in MCP):

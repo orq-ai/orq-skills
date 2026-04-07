@@ -17,7 +17,7 @@ Use the orq MCP server (`https://my.orq.ai/v2/mcp`) as the primary interface. Fo
 | `create_agent` | Create a new agent with configuration |
 | `get_agent` | Get agent details — verify configuration after creation or updates |
 | `update_agent` | Update agent configuration (instructions, model, tools) — iterate without recreating |
-| `search_entities` | Find agents, knowledge bases (`type: "knowledge"`), memory stores (`type: "memory_store"`) |
+| `search_entities` | Find agents, knowledge bases (`type: "knowledge"`), memory stores (`type: "memory_store"`), evaluators (`type: "evaluator"`) |
 | `search_directories` | Discover workspace project structure and paths — useful for KB `path` selection |
 | `list_models` | List available models for agent configuration |
 | `create_llm_eval` | Create evaluators for quality comparison |
