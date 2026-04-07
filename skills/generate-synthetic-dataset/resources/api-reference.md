@@ -31,12 +31,12 @@ Use the orq MCP server (`https://my.orq.ai/v2/mcp`) as the primary interface. Fo
 
 ```bash
 # List datasets
-curl -s https://my.orq.ai/v2/datasets \
+curl -s https://api.orq.ai/v2/datasets \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 
 # Get dataset details
-curl -s https://my.orq.ai/v2/datasets/<DATASET_ID> \
+curl -s https://api.orq.ai/v2/datasets/<DATASET_ID> \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 ```
@@ -45,18 +45,18 @@ curl -s https://my.orq.ai/v2/datasets/<DATASET_ID> \
 
 ```bash
 # List datapoints in a dataset
-curl -s "https://my.orq.ai/v2/datasets/<DATASET_ID>/datapoints" \
+curl -s "https://api.orq.ai/v2/datasets/<DATASET_ID>/datapoints" \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 
 # Bulk create datapoints (use for >50 datapoints)
-curl -s -X POST "https://my.orq.ai/v2/datasets/<DATASET_ID>/datapoints" \
+curl -s -X POST "https://api.orq.ai/v2/datasets/<DATASET_ID>/datapoints" \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"datapoints": [...]}' | jq
 
 # Delete datapoints (bulk)
-curl -s -X DELETE https://my.orq.ai/v2/datasets/<DATASET_ID>/datapoints \
+curl -s -X DELETE https://api.orq.ai/v2/datasets/<DATASET_ID>/datapoints \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"ids": ["dp_1", "dp_2"]}' | jq
@@ -66,7 +66,7 @@ curl -s -X DELETE https://my.orq.ai/v2/datasets/<DATASET_ID>/datapoints \
 
 ```bash
 # List evaluators (to understand what the dataset needs to support)
-curl -s https://my.orq.ai/v2/evaluators \
+curl -s https://api.orq.ai/v2/evaluators \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 ```
