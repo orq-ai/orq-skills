@@ -29,6 +29,7 @@ export ORQ_API_KEY=your-key-here  # add to ~/.zshrc or ~/.bashrc
 # Connect the MCP server (run once)
 claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp \
   --header "Authorization: Bearer ${ORQ_API_KEY}"
+# The .mcp.json at the repo root also configures MCP for Codex and Cursor plugins.
 ```
 
 ### Install orq-skills
