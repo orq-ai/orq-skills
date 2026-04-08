@@ -52,19 +52,13 @@ Installs skills and MCP config:
 ln -s /path/to/orq-skills ~/.cursor/plugins/local/orq
 ```
 
-Cursor discovers components from default paths (`skills/`, `mcp.json`) in the plugin root.
+The `.cursor-plugin/plugin.json` manifest declares the skills directory (`./skills/`) and MCP config (`./.mcp.json`). Cursor reads these paths from the manifest.
 
 ---
 
 #### Option C — Codex plugin
 
-Installs skills and MCP config:
-
-```bash
-# This repository includes a ready marketplace entry at:
-# .agents/plugins/marketplace.json
-# (plugin source path: "./plugins/orq")
-```
+This repository includes a ready marketplace entry at `.agents/plugins/marketplace.json` (plugin source path: `./plugins/orq`). Codex reads the marketplace entry automatically when this repository is opened.
 
 See [Codex plugin docs](https://developers.openai.com/codex/plugins/build) for installation details.
 
@@ -99,19 +93,19 @@ npx skills add orq-ai/orq-skills
 
 ### Verify
 
-Run the interactive onboarding — it checks your `ORQ_API_KEY`, confirms the MCP server is reachable, and validates your credentials against a live API call:
+Run the interactive onboarding (Option A only) — it checks your `ORQ_API_KEY`, confirms the MCP server is reachable, and validates your credentials against a live API call:
 
 ```
 /orq:quickstart
 ```
 
-Smoke test Cursor:
+Smoke-test Cursor (Option B):
 
 1. Restart Cursor after installing/symlinking the plugin.
 2. Open Cursor settings and confirm `orq` skills are available.
-3. Open MCP settings and confirm `orq-workspace` can be enabled from `mcp.json`.
+3. Open MCP settings and confirm `orq-workspace` can be enabled from `.mcp.json`.
 
-Smoke test Codex:
+Smoke-test Codex (Option C):
 
 1. Ensure Codex can read this repository's `.agents/plugins/marketplace.json`.
 2. Install the `orq` plugin from that marketplace.
