@@ -15,6 +15,8 @@ Use the orq MCP server (`https://my.orq.ai/v2/mcp`) as the primary interface. Fo
 | Tool | Purpose |
 |------|---------|
 | `create_llm_eval` | Create an LLM evaluator |
+| `create_python_eval` | Create a Python evaluator for code-based checks |
+| `evaluator_get` | Retrieve any evaluator by ID |
 | `list_traces` | List and filter traces for error analysis |
 | `list_spans` | List spans within a trace |
 | `get_span` | Get detailed span information |
@@ -35,17 +37,17 @@ For operations not yet in MCP.
 
 ```bash
 # List evaluators
-curl -s https://my.orq.ai/v2/evaluators \
+curl -s https://api.orq.ai/v2/evaluators \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 
 # Get evaluator details
-curl -s https://my.orq.ai/v2/evaluators/<ID> \
+curl -s https://api.orq.ai/v2/evaluators/<ID> \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 
 # Invoke an evaluator
-curl -s https://my.orq.ai/v2/evaluators/<ID>/invoke \
+curl -s https://api.orq.ai/v2/evaluators/<ID>/invoke \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"output": "LLM output", "query": "Original input", "reference": "Expected answer"}' | jq
@@ -55,40 +57,38 @@ curl -s https://my.orq.ai/v2/evaluators/<ID>/invoke \
 
 ```bash
 # List agents
-curl -s https://my.orq.ai/v2/agents \
+curl -s https://api.orq.ai/v2/agents \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 
 # Invoke an agent (for generating test traces)
-curl -s https://api.orq.ai/v2/agents/responses \
-  -X POST \
+curl -s -X POST https://api.orq.ai/v2/agents/<AGENT_KEY>/responses \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"agent_key": "<KEY>", "message": {"role": "user", "parts": [{"kind": "text", "text": "Test input"}]}}' | jq
+  -d '{"message": {"role": "user", "parts": [{"kind": "text", "text": "Test input"}]}, "background": false}' | jq
 
 # Multi-turn agent testing (reuse task_id)
-curl -s https://api.orq.ai/v2/agents/responses \
-  -X POST \
+curl -s -X POST https://api.orq.ai/v2/agents/<AGENT_KEY>/responses \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"agent_key": "<KEY>", "message": {"role": "user", "parts": [{"kind": "text", "text": "Step 2"}]}, "task_id": "<task_id>"}' | jq
+  -d '{"task_id": "<task_id>", "message": {"role": "user", "parts": [{"kind": "text", "text": "Step 2"}]}, "background": false}' | jq
 ```
 
 ### Tools
 
 ```bash
 # List tools
-curl -s https://my.orq.ai/v2/tools \
+curl -s https://api.orq.ai/v2/tools \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 
 # Get tool details
-curl -s https://my.orq.ai/v2/tools/<ID> \
+curl -s https://api.orq.ai/v2/tools/<ID> \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 
 # Create a tool
-curl -s https://my.orq.ai/v2/tools \
+curl -s https://api.orq.ai/v2/tools \
   -X POST \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" \
@@ -99,26 +99,26 @@ curl -s https://my.orq.ai/v2/tools \
 
 ```bash
 # List memory stores
-curl -s https://my.orq.ai/v2/memory-stores \
+curl -s https://api.orq.ai/v2/memory-stores \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 
-# Create a memory store
-curl -s https://my.orq.ai/v2/memory-stores \
+# Create a memory store (key, description, path, embedding_config required)
+curl -s https://api.orq.ai/v2/memory-stores \
   -X POST \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"key": "conversation-memory", "embedding_model": "text-embedding-3-small", "embedding_provider": "openai", "top_k": 5}' | jq
+  -d '{"key": "conversation-memory", "description": "Stores conversation context", "path": "Default/agents", "embedding_config": {"model": "openai/text-embedding-3-small"}}' | jq
 
-# Add a memory document
-curl -s https://my.orq.ai/v2/memory-stores/<STORE_ID>/documents \
+# Create a memory (sub-resource of memory store)
+curl -s https://api.orq.ai/v2/memory-stores/<STORE_KEY>/memories \
   -X POST \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"text": "User prefers email communication", "metadata": {"source": "session_1"}}' | jq
+  -d '{"entity_id": "user_123"}' | jq
 
-# List memory documents
-curl -s https://my.orq.ai/v2/memory-stores/<STORE_ID>/documents \
+# List memories in a store
+curl -s https://api.orq.ai/v2/memory-stores/<STORE_KEY>/memories \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 ```
@@ -127,26 +127,26 @@ curl -s https://my.orq.ai/v2/memory-stores/<STORE_ID>/documents \
 
 ```bash
 # List knowledge bases
-curl -s https://my.orq.ai/v2/knowledge \
+curl -s https://api.orq.ai/v2/knowledge \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 
 # Get knowledge base details
-curl -s https://my.orq.ai/v2/knowledge/<ID> \
+curl -s https://api.orq.ai/v2/knowledge/<ID> \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" | jq
 
 # Create a knowledge base
-curl -s https://my.orq.ai/v2/knowledge \
+curl -s https://api.orq.ai/v2/knowledge \
   -X POST \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"key": "product-docs", "embedding_model": "openai/text-embedding-3-small", "top_k": 5, "threshold": 0.7}' | jq
+  -d '{"key": "product-docs", "type": "internal", "path": "Default/knowledge", "embedding_model": "openai/text-embedding-3-small"}' | jq
 
 # Search a knowledge base (retrieval-only evaluation)
-curl -s https://my.orq.ai/v2/knowledge/<ID>/search \
+curl -s https://api.orq.ai/v2/knowledge/<ID>/search \
   -X POST \
   -H "Authorization: Bearer $ORQ_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"query": "How do I reset my password?", "limit": 10, "threshold": 0.8}' | jq
+  -d '{"query": "How do I reset my password?", "top_k": 10, "threshold": 0.8}' | jq
 ```

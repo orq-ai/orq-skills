@@ -1,6 +1,12 @@
 ---
 name: compare-agents
-description: Run cross-framework agent comparisons using evaluatorq from orqkit. Compares any combination of agents (orq.ai, LangGraph, CrewAI, OpenAI Agents SDK, Vercel AI SDK) head-to-head on the same dataset with LLM-as-a-judge scoring. Use when user says "compare agents", "benchmark", "test agents", or wants side-by-side evaluation.
+description: >
+  Run cross-framework agent comparisons using evaluatorq from orqkit — compares
+  any combination of agents (orq.ai, LangGraph, CrewAI, OpenAI Agents SDK,
+  Vercel AI SDK) head-to-head on the same dataset with LLM-as-a-judge scoring.
+  Use when comparing agents, benchmarking, or wanting side-by-side evaluation.
+  Do NOT use when comparing only orq.ai configurations with no external agents
+  (use run-experiment instead).
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, Task, AskUserQuestion, orq*
 ---
 
@@ -16,7 +22,7 @@ Supported comparison modes:
 
 ## Constraints
 
-- **NEVER** create datasets inline in the comparison script — delegate to `generate-synthetic-dataset` skill or use `{ datasetId: "..." }` to load from the platform.
+- **NEVER** create datasets inline in the comparison script — delegate to `generate-synthetic-dataset` skill or use `{ dataset_id: "..." }` (Python) / `{ datasetId: "..." }` (TypeScript) to load from the platform.
 - **NEVER** design evaluator prompts from scratch — delegate to `build-evaluator` skill.
 - **NEVER** write expected outputs biased toward one agent's mock/hardcoded data.
 - **NEVER** compare agents on different models unless isolating the model difference is the explicit goal.
@@ -32,7 +38,7 @@ Supported comparison modes:
 - `build-evaluator` — design the LLM-as-a-judge evaluator
 - `run-experiment` — run orq.ai-native experiments (when no external agents are involved)
 - `build-agent` — create orq.ai agents to include in comparisons
-- `setup-observability` — instrument agents for tracing
+- `analyze-trace-failures` — diagnose agent failures and instrument tracing
 
 ## Workflow Checklist
 
@@ -46,6 +52,13 @@ Agent Comparison Progress:
 - [ ] Phase 4: Generate comparison script
 - [ ] Phase 5: Run and view results in orq.ai
 ```
+
+## Done When
+
+- All agents independently invocable and verified before the full experiment
+- Experiment completed and results visible in the orq.ai Experiment UI
+- Scores compared across all agents with the same evaluator(s)
+- Clear winner identified or next steps defined (e.g., deeper investigation with `analyze-trace-failures`)
 
 ## When to use
 
@@ -195,3 +208,15 @@ After running the comparison:
 - **Experiment results:** orq.ai Studio → Your Project → Experiments
 - **Agent details:** orq.ai Studio → Agents
 - **Traces:** orq.ai Studio → Observability → Traces
+
+## Documentation & Resolution
+
+When you need to look up orq.ai platform details, check in this order:
+
+1. **[evaluatorq package source](https://github.com/orq-ai/orqkit)** — installed package is authoritative for API, imports, and patterns
+2. **orq MCP tools** — query live data for agent and dataset operations; API responses are always authoritative
+3. **orq.ai documentation MCP** — use `search_orq_ai_documentation` or `get_page_orq_ai_documentation` to look up platform docs programmatically
+4. **[docs.orq.ai](https://docs.orq.ai)** — browse official documentation directly
+5. **This skill file** — may lag behind package, API, or docs changes
+
+When this skill's content conflicts with live API behavior or official docs, trust the source higher in this list.

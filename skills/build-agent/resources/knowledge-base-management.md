@@ -9,7 +9,8 @@ Complete guide for creating, populating, searching, and managing orq.ai Knowledg
 - Chunking strategies
 - Add chunks with metadata
 - Search with metadata filters
-- Connect KB to prompts
+- Connect KB to an Agent
+- Connect KB to Deployments/Prompts
 - Update and delete
 - Common pitfalls
 
@@ -96,9 +97,36 @@ Filter operators:
 | `and` | Logical AND | `{"and": [{"topic": {"eq": "billing"}}, {"client_id": {"eq": "acme"}}]}` |
 | `or` | Logical OR | `{"or": [{"topic": {"eq": "billing"}}, {"topic": {"eq": "support"}}]}` |
 
-## Connect KB to Prompts
+## Connect KB to an Agent
 
-Once populated, connect a Knowledge Base to a deployment:
+To attach a Knowledge Base to an agent:
+
+1. **Add the KB to the agent's `knowledge_bases` array:**
+   ```json
+   "knowledge_bases": [{"knowledge_id": "my_knowledge_base"}]
+   ```
+
+2. **Add the built-in KB tools to `settings.tools`:**
+   ```json
+   "settings": {
+     "tools": [
+       {"type": "retrieve_knowledge_bases"},
+       {"type": "query_knowledge_base"}
+     ]
+   }
+   ```
+
+3. **Add KB instructions** to the agent's system prompt:
+   ```
+   First use retrieve_knowledge_bases to see what knowledge sources are available,
+   then use query_knowledge_base to search for relevant information.
+   ```
+
+Without both the `knowledge_bases` array and the built-in tools, the agent won't be able to access the KB.
+
+## Connect KB to Deployments/Prompts
+
+To connect a KB to a deployment (non-agent):
 
 1. In the prompt configuration, go to the **Knowledge Base** tab
 2. Select the Knowledge Base by its key

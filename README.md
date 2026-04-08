@@ -10,6 +10,7 @@ Each skill encodes best practices from prompt engineering, agent design, evaluat
 
 Built on the [Agent Skills](https://agentskills.io/home#adoption) standard format, so it works with any compatible agent (Claude Code, Cursor, Gemini CLI, and others).
 
+
 ## Setup
 
 ### Prerequisites
@@ -36,7 +37,10 @@ claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp \
 
 **Option 1: Claude Code plugin (recommended)** — installs skills, commands, and agents:
 ```bash
-/plugin install github:orq-ai/orq-skills
+# Add the marketplace
+claude plugin marketplace add orq-ai/claude-plugins
+
+claude plugin install orq-skills@orq-claude-plugin
 ```
 
 **Option 2: Cursor plugin** — installs skills and MCP config:
@@ -67,7 +71,6 @@ claude --plugin-dir .
 ```
 
 > **Note:** Commands (`/orq:quickstart`, `/orq:workspace`, etc.) and agents are only available when installed as a Claude Code plugin.
-
 
 ### Verify
 
@@ -127,6 +130,7 @@ Skills are triggered by describing what you need. Claude picks the right skill a
 <!-- BEGIN_SKILLS_TABLE -->
 | Skill | What It Does | Documentation |
 |-------|-------------|---------------|
+| **setup-observability** | Set up orq.ai observability for existing LLM applications — AI Router proxy, OpenTelemetry, `@traced` decorator, and trace enrichment | [SKILL.md](skills/setup-observability/SKILL.md) |
 | **build-agent** | Design, create, and configure an orq.ai Agent with tools, instructions, knowledge bases, and memory | [SKILL.md](skills/build-agent/SKILL.md) |
 | **build-evaluator** | Create validated LLM-as-a-Judge evaluators following evaluation best practices | [SKILL.md](skills/build-evaluator/SKILL.md) |
 | **analyze-trace-failures** | Read production traces, identify what's failing, build failure taxonomies, and categorize issues | [SKILL.md](skills/analyze-trace-failures/SKILL.md) |
@@ -139,7 +143,15 @@ Skills are triggered by describing what you need. Claude picks the right skill a
 
 ## Workflows
 
-### 1. Build a New Agent
+### 1. Instrument an Existing App
+
+```
+"Add orq.ai tracing to my app"               → setup-observability
+/orq:traces --last 1h                          # Verify traces are flowing
+"Analyze these traces for failures"            → analyze-trace-failures
+```
+
+### 2. Build a New Agent
 
 ```
 "I need a customer support agent"             → build-agent
@@ -148,7 +160,7 @@ Skills are triggered by describing what you need. Claude picks the right skill a
 "Run an experiment to get a baseline"          → run-experiment
 ```
 
-### 2. Debug Production Issues
+### 3. Debug Production Issues
 
 ```
 /orq:traces --status error --last 24h          # Find errors
@@ -157,7 +169,7 @@ Skills are triggered by describing what you need. Claude picks the right skill a
 "Re-run the experiment to verify the fix"      → run-experiment
 ```
 
-### 3. Improve an Existing Agent
+### 4. Improve an Existing Agent
 
 ```
 /orq:analytics --group-by deployment           # Spot high error rates
@@ -168,7 +180,7 @@ Skills are triggered by describing what you need. Claude picks the right skill a
 "Optimize the prompt based on results"         → optimize-prompt
 ```
 
-### 4. Improve an existing Prompt
+### 5. Improve an Existing Prompt
 
 ```
 "My prompt isn't performing well, help me improve it" → optimize-prompt
