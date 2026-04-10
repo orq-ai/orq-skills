@@ -17,6 +17,9 @@ Built on the [Agent Skills](https://agentskills.io/home#adoption) standard forma
 - An [orq.ai](https://orq.ai) account
 - An API key from [Settings → API Keys](https://my.orq.ai)
 
+  ```bash
+  export ORQ_API_KEY=your-key-here
+  ```
 
 ### Connect the MCP Server
 
