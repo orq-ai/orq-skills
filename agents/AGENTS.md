@@ -12,6 +12,7 @@ These skills are:
  - build-agent -> "skills/build-agent/SKILL.md"
  - build-evaluator -> "skills/build-evaluator/SKILL.md"
  - generate-synthetic-dataset -> "skills/generate-synthetic-dataset/SKILL.md"
+ - invoke-deployment -> "skills/invoke-deployment/SKILL.md"
  - optimize-prompt -> "skills/optimize-prompt/SKILL.md"
  - run-experiment -> "skills/run-experiment/SKILL.md"
 
@@ -24,6 +25,8 @@ build-agent: `Design, create, and configure an orq.ai Agent with tools, instruct
 build-evaluator: `Create validated LLM-as-a-Judge evaluators following best practices — binary Pass/Fail judges with TPR/TNR validation for measuring specific failure modes`
 
 analyze-trace-failures: `Read production traces, identify what's failing, build failure taxonomies, and categorize issues using open coding and axial coding methodology`
+
+invoke-deployment: `Invoke orq.ai deployments, agents, and models — pass prompt variables, stream responses, handle multi-turn agent conversations, and generate Python SDK or curl integration code`
 
 run-experiment: `Create and run orq.ai experiments — compare configurations against datasets using evaluators, analyze results, with specialized methodology for agent, conversation, and RAG evaluation`
 
