@@ -180,6 +180,8 @@ Follow these steps **in order**. Do NOT skip steps.
 
 ## Code Templates
 
+One Python SDK example per invocation type. For curl examples, advanced options (documents, knowledge filters, fallbacks, retry, structured output), and full request/response field tables, see [resources/api-reference.md](resources/api-reference.md).
+
 ### Deployment — Python SDK
 
 ```python
@@ -191,89 +193,21 @@ client = Orq(api_key=os.environ["ORQ_API_KEY"])
 # Non-streaming
 response = client.deployments.invoke(
     key="<deployment-key>",
-    inputs={
-        "variable_name": "value",
-    },
-    identity={
-        "id": "user_<unique_id>",
-        "display_name": "Jane Doe",
-        "email": "jane.doe@example.com",
-    },
+    inputs={"variable_name": "value"},
+    identity={"id": "user_<unique_id>", "display_name": "Jane Doe"},
     metadata={"environment": "production"},
 )
-# Access the generated text
 print(response.choices[0].message.content)
-# Access usage metrics (requires invoke_options.include_usage=True)
-print(response.usage)
 
 # Streaming
-response = client.deployments.invoke(
+for chunk in client.deployments.invoke(
     key="<deployment-key>",
     inputs={"variable_name": "value"},
     identity={"id": "user_<unique_id>"},
     stream=True,
-)
-for chunk in response:
+):
     print(chunk, end="", flush=True)
 ```
-
-### Deployment — curl
-
-```bash
-# Non-streaming
-curl -s -X POST https://api.orq.ai/v2/deployments/invoke \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "key": "<deployment-key>",
-    "inputs": {
-      "variable_name": "value"
-    },
-    "identity": {
-      "id": "user_<unique_id>",
-      "display_name": "Jane Doe",
-      "email": "jane.doe@example.com"
-    },
-    "metadata": {"environment": "production"}
-  }' | jq
-
-# Streaming (server-sent events — stream: true in the body)
-curl -s -X POST https://api.orq.ai/v2/deployments/invoke \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "key": "<deployment-key>",
-    "inputs": {"variable_name": "value"},
-    "identity": {"id": "user_<unique_id>"},
-    "stream": true
-  }'
-
-# With documents (ad-hoc RAG context injection)
-curl -s -X POST https://api.orq.ai/v2/deployments/invoke \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "key": "<deployment-key>",
-    "inputs": {"variable_name": "value"},
-    "identity": {"id": "user_<unique_id>"},
-    "documents": [
-      {
-        "text": "The refund policy allows returns within 30 days.",
-        "metadata": {
-          "file_name": "refund_policy.pdf",
-          "file_type": "application/pdf",
-          "page_number": 1
-        }
-      }
-    ],
-    "invoke_options": {
-      "include_retrievals": true,
-      "include_usage": true
-    }
-  }' | jq
-```
-
----
 
 ### Agent — Python SDK
 
@@ -283,44 +217,22 @@ from orq_ai_sdk import Orq
 
 client = Orq(api_key=os.environ["ORQ_API_KEY"])
 
-# Single turn
+# Single turn — note: agents use parts format, NOT OpenAI-style content
 response = client.agents.responses.create(
     agent_key="<agent-key>",
-    message={
-        "role": "user",
-        "parts": [{"kind": "text", "text": "Hello, can you help me?"}],
-    },
-    identity={
-        "id": "user_<unique_id>",
-        "display_name": "Jane Doe",
-        "email": "jane.doe@example.com",
-    },
+    message={"role": "user", "parts": [{"kind": "text", "text": "Hello, can you help me?"}]},
+    identity={"id": "user_<unique_id>", "display_name": "Jane Doe"},
 )
 print(response.output[0].parts[0].text)
-print(response.usage)
 
-# Multi-turn: save task_id and pass it in the follow-up
+# Multi-turn: save task_id and pass it in follow-ups
 task_id = response.task_id
-
 follow_up = client.agents.responses.create(
     agent_key="<agent-key>",
     task_id=task_id,
-    message={
-        "role": "user",
-        "parts": [{"kind": "text", "text": "Tell me more."}],
-    },
+    message={"role": "user", "parts": [{"kind": "text", "text": "Tell me more."}]},
 )
 print(follow_up.output[0].parts[0].text)
-
-# Streaming
-stream_response = client.agents.responses.create(
-    agent_key="<agent-key>",
-    message={"role": "user", "parts": [{"kind": "text", "text": "Hello!"}]},
-    identity={"id": "user_<unique_id>"},
-    stream=True,
-)
-for event in stream_response:
-    print(event)
 ```
 
 ### Agent — Node.js SDK
@@ -330,91 +242,24 @@ import { Orq } from "@orq-ai/node";
 
 const client = new Orq({ apiKey: process.env.ORQ_API_KEY });
 
-// Single turn
 const response = await client.agents.responses.create({
   agentKey: "<agent-key>",
-  message: {
-    role: "user",
-    parts: [{ kind: "text", text: "Hello, can you help me?" }],
-  },
-  identity: {
-    id: "user_<unique_id>",
-    displayName: "Jane Doe",
-    email: "jane.doe@example.com",
-  },
+  message: { role: "user", parts: [{ kind: "text", text: "Hello, can you help me?" }] },
+  identity: { id: "user_<unique_id>", displayName: "Jane Doe" },
 });
 console.log(response.output[0].parts[0].text);
-console.log(response.usage);
 
 // Multi-turn
 const followUp = await client.agents.responses.create({
   agentKey: "<agent-key>",
   taskId: response.taskId,
-  message: {
-    role: "user",
-    parts: [{ kind: "text", text: "Tell me more." }],
-  },
+  message: { role: "user", parts: [{ kind: "text", text: "Tell me more." }] },
 });
-console.log(followUp.output[0].parts[0].text);
 ```
-
-### Agent — curl
-
-```bash
-# Single turn
-curl -s -X POST https://api.orq.ai/v2/agents/<agent-key>/responses \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": {
-      "role": "user",
-      "parts": [{"kind": "text", "text": "Hello, can you help me?"}]
-    },
-    "identity": {
-      "id": "user_<unique_id>",
-      "display_name": "Jane Doe",
-      "email": "jane.doe@example.com"
-    }
-  }' | jq
-
-# Multi-turn: pass task_id from the previous response
-curl -s -X POST https://api.orq.ai/v2/agents/<agent-key>/responses \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "task_id": "<task_id_from_previous_response>",
-    "message": {
-      "role": "user",
-      "parts": [{"kind": "text", "text": "Tell me more."}]
-    }
-  }' | jq
-
-# Streaming (SSE)
-curl -s -X POST https://api.orq.ai/v2/agents/<agent-key>/responses \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": {"role": "user", "parts": [{"kind": "text", "text": "Hello!"}]},
-    "identity": {"id": "user_<unique_id>"},
-    "stream": true
-  }'
-
-# With template variables (replaces {{variable}} in system prompt/instructions)
-curl -s -X POST https://api.orq.ai/v2/agents/<agent-key>/responses \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": {"role": "user", "parts": [{"kind": "text", "text": "Help me."}]},
-    "variables": {"customer_tier": "premium", "language": "English"},
-    "identity": {"id": "user_<unique_id>"}
-  }' | jq
-```
-
----
 
 ### Model (AI Router) — Python SDK
 
-The AI Router endpoint is `POST /v2/router/chat/completions`. Use the `openai` library pointed at orq.ai:
+Uses the `openai` library pointed at orq.ai — no orq SDK needed:
 
 ```python
 import os
@@ -425,7 +270,6 @@ client = OpenAI(
     base_url="https://api.orq.ai/v2/router",
 )
 
-# Non-streaming — basic call
 response = client.chat.completions.create(
     model="openai/gpt-4.1",   # always use provider/model format
     messages=[
@@ -434,70 +278,6 @@ response = client.chat.completions.create(
     ],
 )
 print(response.choices[0].message.content)
-
-# Streaming
-stream = client.chat.completions.create(
-    model="openai/gpt-4.1",
-    messages=[{"role": "user", "content": "Tell me a joke."}],
-    stream=True,
-)
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="", flush=True)
-```
-
-### Model (AI Router) — curl
-
-```bash
-# Basic call
-curl -s -X POST https://api.orq.ai/v2/router/chat/completions \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "openai/gpt-4.1",
-    "messages": [
-      {"role": "system", "content": "You are a helpful assistant."},
-      {"role": "user", "content": "What is the capital of France?"}
-    ]
-  }' | jq
-
-# With variables (template substitution in message content)
-curl -s -X POST https://api.orq.ai/v2/router/chat/completions \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "openai/gpt-4.1",
-    "messages": [
-      {"role": "system", "content": "You help {{customer_name}}."},
-      {"role": "user", "content": "{{user_question}}"}
-    ],
-    "variables": {
-      "customer_name": "Jane Doe",
-      "user_question": "How do I reset my password?"
-    }
-  }' | jq
-
-# With fallbacks, retry, and identity
-curl -s -X POST https://api.orq.ai/v2/router/chat/completions \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "openai/gpt-4.1",
-    "messages": [{"role": "user", "content": "Hello!"}],
-    "fallbacks": [{"model": "anthropic/claude-sonnet-4-5"}],
-    "retry": {"count": 3, "on_codes": [429, 500, 502, 503]},
-    "metadata": {"environment": "production"}
-  }' | jq
-
-# Streaming
-curl -s -X POST https://api.orq.ai/v2/router/chat/completions \
-  -H "Authorization: Bearer $ORQ_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "anthropic/claude-sonnet-4-5",
-    "messages": [{"role": "user", "content": "Tell me a joke."}],
-    "stream": true
-  }'
 ```
 
 ---
