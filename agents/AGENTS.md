@@ -28,7 +28,7 @@ build-evaluator: `Create validated LLM-as-a-Judge evaluators following best prac
 
 analyze-trace-failures: `Read production traces, identify what's failing, build failure taxonomies, and categorize issues using open coding and axial coding methodology`
 
-invoke-deployment: `Invoke orq.ai deployments, agents, and models — pass prompt variables, stream responses, handle multi-turn agent conversations, and generate Python SDK or curl integration code`
+invoke-deployment: `Invoke orq.ai deployments, agents, and models — pass prompt variables, stream responses, handle multi-turn agent conversations, and generate integration code (Python SDK inline; curl and advanced options in the API reference resource)`
 
 run-experiment: `Create and run orq.ai experiments — compare configurations against datasets using evaluators, analyze results, with specialized methodology for agent, conversation, and RAG evaluation`
 

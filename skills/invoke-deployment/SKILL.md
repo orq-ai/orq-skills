@@ -4,9 +4,10 @@ description: >
   Invoke orq.ai deployments, agents, and models via the Python SDK or HTTP API.
   Use when a user wants to call a deployment with prompt variables, invoke an
   agent in a conversation, or call a model directly through the AI Router.
-  Covers Python SDK and curl for all three invocation types. Do NOT use for
-  creating or editing deployments/agents (use optimize-prompt or build-agent).
-  Do NOT use for running evaluations (use run-experiment).
+  Covers Python SDK templates inline; curl and advanced options in the API
+  reference resource. Do NOT use for creating or editing deployments/agents
+  (use optimize-prompt or build-agent). Do NOT use for running evaluations
+  (use run-experiment).
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, Task, AskUserQuestion, orq*
 ---
 
