@@ -21,7 +21,7 @@ Built on the [Agent Skills](https://agentskills.io/home#adoption) standard forma
   export ORQ_API_KEY=your-key-here
   ```
 
-### Claude Code plugin (recommended)
+### Claude Code plugin
 
 Use this if you want easy access to all components — skills, MCP tools, and trace hooks — in one install. Installed via the [orq-ai/claude-plugins](https://github.com/orq-ai/claude-plugins) marketplace.
 
