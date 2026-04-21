@@ -118,10 +118,23 @@ Follow these steps **in order**. Do NOT skip steps.
 
    If the user already knows the key, skip directly to step 3.
 
-3. **For deployments:** inspect the prompt template and identify which invocation pattern applies:
+3. **For deployments:** fetch the deployment config to discover `{{variable}}` placeholders **before** asking the user for a message or invoking:
+
+   ```bash
+   curl -sk -H "Authorization: Bearer $ORQ_API_KEY" \
+     "https://api.orq.ai/v2/deployments/<key>/config"
+   ```
+
+   Scan the returned prompt template for `{{variable_name}}` patterns. These are the required `inputs` keys.
+
+   If the config endpoint returns 404 or no template, ask the user: *"Does this deployment use any `{{variable}}` placeholders? If so, what are they?"*
+
+   Then identify which invocation pattern applies:
    - **Variable substitution** — the prompt contains `{{variable}}` placeholders → pass values via `inputs`
    - **Message appending** — the prompt has no variables → pass the user's question via `messages: [{role: "user", content: "..."}]`
    - **Mixed** — some variables in the template AND a dynamic user message → use both `inputs` and `messages`
+
+   **Do not ask the user for a message and do not invoke until you have confirmed the variable pattern.** Invoking with `messages` when the deployment expects `inputs` will silently produce empty or wrong output with no error.
 
    `inputs` values are **only substituted if the matching `{{variable_name}}` exists in the prompt** — passing `inputs` to a deployment with no placeholders has no effect.
 
