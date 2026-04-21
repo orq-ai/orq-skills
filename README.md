@@ -21,66 +21,79 @@ Built on the [Agent Skills](https://agentskills.io/home#adoption) standard forma
   export ORQ_API_KEY=your-key-here
   ```
 
-### Connect the MCP Server
+### Claude Code plugin (recommended)
 
-The MCP server gives skills and commands access to your orq.ai workspace.
-
-```bash
-# Set your API key (add to ~/.zshrc or ~/.bashrc to persist)
-export ORQ_API_KEY=your-key-here
-```
-
-> **Skip the rest of this section if you're installing the Claude Code plugin (Option 1, with `orq-mcp`) or a Cursor/Codex plugin** — those plugins register the MCP server automatically from the bundled manifest. Manual registration is only needed for the `npx skills` CLI or when connecting a tool that doesn't use the plugin format.
-
-For manual registration in Claude Code:
-
-```bash
-claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp \
-  --header "Authorization: Bearer ${ORQ_API_KEY}"
-```
-
-### Install orq-skills
-
-**Option 1: Claude Code plugin (recommended)** — installs skills, commands, and agents via the [orq-ai/claude-plugins](https://github.com/orq-ai/claude-plugins) marketplace:
+Use this if you want easy access to all components — skills, MCP tools, and trace hooks — in one install. Installed via the [orq-ai/claude-plugins](https://github.com/orq-ai/claude-plugins) marketplace.
 
 ```bash
 # In Claude Code:
 /plugin marketplace add orq-ai/claude-plugins
+
+# Install all 3 plugins
 /plugin install orq-skills@orq-claude-plugin
-```
-
-The same marketplace also ships `orq-mcp` (MCP server plugin). Install it alongside to skip the manual MCP registration step:
-
-```bash
 /plugin install orq-mcp@orq-claude-plugin
+/plugin install orq-trace@orq-claude-plugin
 ```
 
-**Option 2: npx skills CLI** — universal skills installer (Claude Code, Cursor, Gemini CLI, Cline, Copilot CLI, Codex, Windsurf, and [many others](https://www.npmjs.com/package/skills)):
+| Plugin | What it gives you |
+|--------|-------------------|
+| `orq-skills` | Skills, commands, and agents for the Build → Evaluate → Optimize lifecycle |
+| `orq-mcp` | MCP server registration — Claude can call orq.ai APIs directly |
+| `orq-trace` | OTLP tracing hooks that capture Claude Code sessions into orq.ai |
 
-```bash
-npx skills add orq-ai/orq-skills
-```
-
-Auto-detects your agent and writes skills to the correct location (e.g. `.claude/skills/`, `.cursor/rules/`). Run inside your project directory. Then register the MCP server per "Connect the MCP Server" above.
-
-### Other install methods
-
-- [Cursor plugin](docs/install-cursor.md)
-- [Codex plugin](docs/install-codex.md)
-- [Manual clone (Claude Code)](docs/install-manual.md)
-
-
-### Verify
-
-**Claude Code:** run the interactive onboarding — it checks `ORQ_API_KEY`, confirms the MCP server is reachable, and validates your credentials with a live API call.
+Verify with the interactive onboarding — checks `ORQ_API_KEY`, MCP reachability, and credentials:
 
 ```
 /orq:quickstart
 ```
 
-**Cursor / Codex:** see verify steps in the relevant install doc under [docs/](docs/).
+---
 
-**All options:** validate the plugin manifests with
+### Skills-only install
+
+Use this when you're on a non-Claude agent (Cursor, Gemini CLI, Cline, Copilot CLI, Codex, Windsurf, and [many others](https://www.npmjs.com/package/skills)), or when you only want the skills without MCP/trace hooks.
+
+```bash
+npx skills add orq-ai/orq-skills
+```
+
+Auto-detects your agent and writes skills to the correct location (e.g. `.claude/skills/`, `.cursor/rules/`). Run inside your project directory.
+
+Agent-specific install guides:
+
+- [Cursor plugin](docs/install-cursor.md)
+- [Codex plugin](docs/install-codex.md)
+- [Manual clone (Claude Code)](docs/install-manual.md)
+
+---
+
+### MCP-only install
+
+Use this when you want orq.ai MCP tools in a tool that isn't the Claude Code plugin (Claude Desktop, other MCP-capable clients, or manual Claude Code setup).
+
+```bash
+# Manual registration in Claude Code
+claude mcp add --transport http orq-workspace https://my.orq.ai/v2/mcp \
+  --header "Authorization: Bearer ${ORQ_API_KEY}"
+```
+
+For other clients, most accept a JSON block with `url` + `headers`:
+
+```json
+{
+  "mcpServers": {
+    "orq-workspace": {
+      "type": "http",
+      "url": "https://my.orq.ai/v2/mcp",
+      "headers": { "Authorization": "Bearer ${ORQ_API_KEY}" }
+    }
+  }
+}
+```
+
+---
+
+### Manifest validation
 
 ```bash
 tests/scripts/validate-plugin-manifests.sh
