@@ -104,16 +104,18 @@ Follow these steps **in order**. Do NOT skip steps.
 
 ### Phase 1: Discover the Target Resource
 
+> **This phase is a one-time setup step** — its purpose is to identify the key and prompt variables needed to write the integration code. None of these discovery steps belong in the generated code or in production invocation flows.
+
 1. **Identify what the user wants to invoke:**
    - **Deployment** — prompt template + model, versioned, invoke with `inputs` to fill variables
    - **Agent** — prompt + tools + memory + KB, multi-turn conversations via `responses.create`
    - **Model direct call** — OpenAI-compatible AI Router, no template
 
-2. **Find the resource key** using `search_entities` MCP tool:
+2. **Find the resource key** if the user doesn't already know it, using `search_entities` MCP tool:
    - Deployments: `type: "deployment"`
    - Agents: `type: "agent"`
 
-   If the user already knows the key, confirm and proceed.
+   If the user already knows the key, skip directly to step 3.
 
 3. **For deployments:** inspect the prompt template and list every `{{variable}}` placeholder — these map to `inputs` keys. Missing inputs silently omit placeholder content.
 
