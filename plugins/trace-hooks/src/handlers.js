@@ -331,6 +331,8 @@ async function emitTranscriptSpans(state, payload, { emitPending = false } = {})
           attr("orq.input.value", toStringValue(inputValue)),
           attr("orq.output.value", toStringValue(outputValue)),
           tool.incomplete ? attr("claude_code.tool.incomplete", true) : null,
+          tool.name === "Skill" ? attr("claude_code.skill.name", tool.input?.skill ?? "unknown") : null,
+          tool.name === "Skill" ? attr("claude_code.skill.args", tool.input?.args || "") : null,
         ]),
       }));
       previousEndNs = toolEndNs || toolStartNs || previousEndNs;
