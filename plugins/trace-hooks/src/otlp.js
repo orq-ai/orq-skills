@@ -132,6 +132,11 @@ export async function sendSpan(span) {
   return sendSpans([span]);
 }
 
+// Cooldown prevents drainQueue from running on every hook invocation during
+// an outage (where 100 queued files would all be retried each time).
+let _lastDrainMs = 0;
+const DRAIN_COOLDOWN_MS = 30000;
+
 export async function sendSpans(spans) {
   if (spans.length === 0) {
     return;
@@ -140,7 +145,11 @@ export async function sendSpans(spans) {
   const payload = buildBatchPayload(spans);
 
   try {
-    await drainQueue();
+    const now = Date.now();
+    if (now - _lastDrainMs > DRAIN_COOLDOWN_MS) {
+      _lastDrainMs = now;
+      await drainQueue();
+    }
     await postPayload(payload);
   } catch (sendErr) {
     process.stderr.write(`[orq-trace] WARN: span send failed (queued for retry): ${sendErr?.message}\n`);
