@@ -27,7 +27,7 @@ function getGitInfo(args, cwd) {
   } catch (err) {
     // Exit code 128 = not a git repo, ENOENT = git not installed — both expected
     if (err?.status === 128 || err?.code === "ENOENT") return null;
-    process.stderr.write(`[orq-trace] WARN: git ${args[0]} failed: ${err?.message}\n`);
+    process.stderr.write(`[orq-trace] WARN: git ${args[0]} failed (cwd=${cwd}): ${err?.message}\n`);
     return null;
   }
 }

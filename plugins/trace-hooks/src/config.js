@@ -95,7 +95,11 @@ export function getApiKey() {
   if (process.env.ORQ_TRACE_PROFILE) {
     const config = loadOrqConfig();
     const profile = config.profiles?.[process.env.ORQ_TRACE_PROFILE];
-    if (profile?.api_key) {
+    if (!profile) {
+      process.stderr.write(
+        `[orq-trace] WARN: ORQ_TRACE_PROFILE="${process.env.ORQ_TRACE_PROFILE}" not found in orq config — falling back to ORQ_API_KEY\n`,
+      );
+    } else if (profile.api_key) {
       return profile.api_key;
     }
   }

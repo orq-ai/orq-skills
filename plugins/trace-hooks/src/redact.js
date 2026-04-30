@@ -18,10 +18,19 @@ function redactPrimitive(value) {
         (value[0] === "{" || value[0] === "[")) {
       try {
         const parsed = JSON.parse(value);
-        const redacted = deepRedact(parsed);
-        return JSON.stringify(redacted);
+        try {
+          const redacted = deepRedact(parsed);
+          const redactedStr = JSON.stringify(redacted);
+          // Only return re-stringified form when something was actually redacted.
+          // Re-stringifying unchanged data silently normalizes whitespace and
+          // number formatting, making payloads differ from the original.
+          return redactedStr !== JSON.stringify(parsed) ? redactedStr : value;
+        } catch (redactErr) {
+          process.stderr.write(`[orq-trace] WARN: redact failed on JSON string, returning [REDACTED]: ${redactErr?.message}\n`);
+          return "[REDACTED]";
+        }
       } catch {
-        // Not valid JSON — return as-is
+        // SyntaxError from JSON.parse — not valid JSON, return as-is
       }
     }
   }

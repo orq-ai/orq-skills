@@ -5,7 +5,7 @@
 
 set -uo pipefail
 
-TRACE_PROFILE="${1:-prod-claude-code}"
+TRACE_PROFILE="${1:-${TEST_TRACE_PROFILE:-trace}}"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "$DIR/.." && pwd)"
 
