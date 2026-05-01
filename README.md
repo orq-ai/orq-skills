@@ -25,7 +25,8 @@ Built on the [Agent Skills](https://agentskills.io/home#adoption) standard forma
 
 | Tool | Recommended install |
 |------|---------------------|
-| Claude Code | [Claude Code plugin](#claude-code-plugin) |
+| Claude Code (CLI) | [Claude Code plugin](#claude-code-plugin) |
+| Claude Cowork (Desktop) | [Claude Cowork install guide](docs/install-claude-cowork.md) |
 | Cursor | [Cursor install guide](docs/install-cursor.md) |
 | Codex | [Codex install guide](docs/install-codex.md) |
 | Gemini CLI, Cline, Copilot, Windsurf | [Skills-only install (npx)](#skills-only-install) |
@@ -35,11 +36,11 @@ Built on the [Agent Skills](https://agentskills.io/home#adoption) standard forma
 
 ### Claude Code plugin
 
-Use this if you want easy access to all components — skills, MCP tools, and trace hooks — in one install. Installed via the [orq-ai/claude-plugins](https://github.com/orq-ai/claude-plugins) marketplace.
+Use this if you want easy access to all components — skills, MCP tools, and trace hooks — in one install. Installed via the [orq-ai/assistant-plugins](https://github.com/orq-ai/assistant-plugins) marketplace.
 
 ```bash
 # In Claude Code:
-/plugin marketplace add orq-ai/claude-plugins
+/plugin marketplace add orq-ai/assistant-plugins
 
 # Install all 3 plugins
 /plugin install orq-skills@orq-claude-plugin
@@ -66,7 +67,7 @@ Verify with the interactive onboarding — checks `ORQ_API_KEY`, MCP reachabilit
 Use this when you're on a non-Claude agent (Cursor, Gemini CLI, Cline, Copilot CLI, Codex, Windsurf, and [many others](https://www.npmjs.com/package/skills)), or when you only want the skills without MCP/trace hooks.
 
 ```bash
-npx skills add orq-ai/orq-skills
+npx skills add orq-ai/assistant-plugins
 ```
 
 Auto-detects your agent and writes skills to the correct location (e.g. `.claude/skills/`, `.cursor/rules/`). Run inside your project directory.
@@ -203,5 +204,5 @@ Skills are triggered by describing what you need. Claude picks the right skill a
 
 - [orq.ai Dashboard](https://my.orq.ai)
 - [Documentation](https://docs.orq.ai)
-- [GitHub Repository](https://github.com/orq-ai/orq-skills)
+- [GitHub Repository](https://github.com/orq-ai/assistant-plugins)
 - [Agent Skills Standard](https://agentskills.io)
