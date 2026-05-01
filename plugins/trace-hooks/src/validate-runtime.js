@@ -26,4 +26,4 @@ for (const rel of required) {
   await fs.access(full);
 }
 
-console.log("assistant-plugins runtime files verified");
+console.log("orq assistant-plugins runtime files verified");
