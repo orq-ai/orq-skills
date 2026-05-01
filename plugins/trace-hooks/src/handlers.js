@@ -565,7 +565,17 @@ export async function handleSubagentStart() {
 
   await withSessionLock(sessionId, async () => {
     const state = await loadSessionState(sessionId);
-    if (!state || !state.current_turn_span_id) return;
+    if (!state) return;
+
+    // In -p / non-interactive mode UserPromptSubmit may not fire, leaving
+    // current_turn_span_id null. Create a synthetic turn (same logic as
+    // handleSessionEnd) so subagent spans have a valid parent.
+    if (!state.current_turn_span_id) {
+      if (state.turn_count === 0) state.turn_count = 1;
+      state.current_turn_span_id = randomHex(8);
+      state.current_turn_started_at_ns = state.session_started_at_ns;
+      state.current_turn_input = "";
+    }
 
     const agentId = payload.agent_id || payload.agentId;
     if (!agentId) return;
