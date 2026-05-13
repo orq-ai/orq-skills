@@ -140,6 +140,23 @@ Requires `setup.md` to have run first (seed data for `run-experiment` test).
 - Ask: "Run an experiment using orq-skills-test-dataset with orq-skills-test-eval-length"
 - Verify: calls `create_experiment` with correct references
 
+## `simulate-agent`
+
+### Scenario 1: Persona-driven multi-turn simulation
+
+- Ask: "Simulate a skeptical founder talking to my agent `support-agent` for 6 turns"
+- Verify Phase 1: confirms the agent key, runs a single-turn invocation to verify it works
+- Verify Phase 2: asks for or generates `role`, `tone`, `goals`, `constraints`
+- Verify Phase 3: sets `max_turns`, defines at least one stop condition, picks a simulator model in a different family than the agent under test
+- Verify Phase 4: script uses `thread: { id: <stable-id> }` per persona, uses `agents.responses.create()` (not `agents.invoke()`)
+- Verify Phase 5: prints one full transcript and asks the user to review before scaling
+- Verify Phase 6: reports the orq.ai thread URL and the `~/.evaluatorq/runs/...` path
+
+### Scenario 2: Red-teaming intent
+
+- Ask: "Simulate jailbreak attempts against my agent"
+- Verify: redirects to `evaluatorq.red_team()` with attack categories (LLM01–LLM10) rather than rolling a persona loop
+
 ---
 
 ## Critical Files
@@ -160,3 +177,7 @@ Requires `setup.md` to have run first (seed data for `run-experiment` test).
 - `skills/optimize-prompt/SKILL.md`
 - `skills/analyze-trace-failures/SKILL.md`
 - `skills/run-experiment/SKILL.md`
+- `skills/simulate-agent/SKILL.md`
+- `skills/simulate-agent/resources/persona-template.md`
+- `skills/simulate-agent/resources/simulation-loop.md`
+- `skills/simulate-agent/resources/redteam-mode.md`
