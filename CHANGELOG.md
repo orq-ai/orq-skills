@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0] - 2026-05-14
+
+### Added
+- `manage-skills` skill — CRUD workflow for the orq.ai Skills entity (list, get, create, update, delete) plus authoring guidance (naming, description, tags, project scoping), governance (wiring Skills to agents via `agent.skills[]`), and platform-caveat workarounds.
+- `manage-skills`: warn-then-offer flow for the post-delete orphan-reference cleanup pass (INN-2861 workaround) — never auto-prunes `agent.skills[]`, always asks for separate explicit consent before writing to referencing agents.
+- `manage-skills`: defensive handling for INN-2836 — treats empty/missing `skill.version` *and* unstamped `skill.doc` (both side-effects of the Snippet→Skill migration) as valid states (surfaced as `(unset)`).
+- `manage-skills`: anti-pattern guidance against `+NEVER+` / "you MUST refuse" prose constraints in Skill bodies (ENG-1604) — recommends MCP tool gates for hard guardrails.
+- `/manage-skills` slash command — routes to list/get/create/update/delete phases.
+
 ## [0.0.2] - 2026-04-21
 
 ### Added

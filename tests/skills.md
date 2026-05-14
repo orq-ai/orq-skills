@@ -140,6 +140,42 @@ Requires `setup.md` to have run first (seed data for `run-experiment` test).
 - Ask: "Run an experiment using orq-skills-test-dataset with orq-skills-test-eval-length"
 - Verify: calls `create_experiment` with correct references
 
+## `manage-skills`
+
+### Scenario 1: List skills
+
+- Ask: "Show me the Skills in my workspace"
+- Verify: calls `list_skills` (or REST `/v2/skills` fallback)
+- Verify: presents name, project scope, tags, and version per Skill
+- Verify: does NOT crash on Skills with empty `version` OR unstamped `doc` (INN-2836)
+
+### Scenario 2: Create skill (authoring guidance)
+
+- Ask: "Create a Skill called `extract-receipt-fields`"
+- Verify Phase 3: asks for description, tags, project scope (default project-scoped, not workspace-wide)
+- Verify: rejects or flags descriptions that don't start with "Use when…" or describe a trigger
+- Verify: warns if the proposed body contains `+NEVER+` / "you MUST refuse" prose constraints and recommends an MCP tool gate instead
+- Verify: calls `list_skills` first to check name uniqueness and to surface existing tags
+
+### Scenario 3: Delete skill — orphan handling
+
+- Provide context: a Skill that's referenced by 2 agents
+- Ask: "Delete this Skill"
+- Verify: calls `search_entities(type: "agent")` and identifies referencing agents BEFORE deletion
+- Verify: warns user about INN-2861 orphan-reference behavior
+- Verify: gets explicit consent for delete, then a SECOND explicit consent for the orphan-cleanup pass
+- Verify: never auto-prunes `agent.skills[]` without consent
+- Verify: after consent, calls `get_agent` + `update_agent` per agent and verifies each prune
+- Verify: final report lists what was deleted and what was pruned (or skipped)
+
+### Scenario 4: Update skill (no blind overwrite)
+
+- Ask: "Update the description of `refund-policy` Skill"
+- Verify: calls `get_skill` first, shows the user the current state
+- Verify: only patches the changed field — does not echo back unchanged tags/body
+- Verify: confirms the diff with the user before `update_skill`
+- Verify Phase 4: routes body rewrites through `optimize-prompt` (delegates rather than rewriting inline)
+
 ---
 
 ## Critical Files
@@ -160,3 +196,8 @@ Requires `setup.md` to have run first (seed data for `run-experiment` test).
 - `skills/optimize-prompt/SKILL.md`
 - `skills/analyze-trace-failures/SKILL.md`
 - `skills/run-experiment/SKILL.md`
+- `skills/manage-skills/SKILL.md`
+- `skills/manage-skills/resources/authoring-guide.md`
+- `skills/manage-skills/resources/governance-guide.md`
+- `skills/manage-skills/resources/known-caveats.md`
+- `commands/manage-skills.md`
