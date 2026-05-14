@@ -28,7 +28,7 @@ Built on the [Agent Skills](https://agentskills.io/home#adoption) standard forma
 | Claude Code (CLI) | [Claude Code plugin](#claude-code-plugin) |
 | Claude Cowork (Desktop) | [Claude Cowork install guide](docs/install-claude-cowork.md) |
 | Cursor | [Cursor install guide](docs/install-cursor.md) |
-| Codex | [Codex install guide](docs/install-codex.md) |
+| Codex | [Codex install](#codex) |
 | Gemini CLI, Cline, Copilot, Windsurf | [Skills-only install (npx)](#skills-only-install) |
 | Any MCP-capable client | [MCP-only install](#mcp-only-install) |
 
@@ -59,6 +59,24 @@ Verify with the interactive onboarding — checks `ORQ_API_KEY`, MCP reachabilit
 ```
 /orq:quickstart
 ```
+
+---
+
+### Codex
+
+```bash
+# Skills (writes to ~/.agents/skills/, which Codex scans by default)
+npx skills add orq-ai/assistant-plugins --agent codex -g -y
+
+# orq.ai MCP server (writes [mcp_servers.orq-workspace] to ~/.codex/config.toml)
+codex mcp add orq-workspace \
+  --url https://my.orq.ai/v2/mcp \
+  --bearer-token-env-var ORQ_API_KEY
+```
+
+Restart Codex. Verify with `/mcp` (lists `orq-workspace`) or the prompt *"List my orq.ai agents"*.
+
+Codex plugins don't support slash commands, so `/orq:*` shortcuts are Claude Code-only — in Codex, describe tasks in natural language to trigger skills.
 
 ---
 
