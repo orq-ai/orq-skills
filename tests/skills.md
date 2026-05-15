@@ -145,36 +145,39 @@ Requires `setup.md` to have run first (seed data for `run-experiment` test).
 ### Scenario 1: List skills
 
 - Ask: "Show me the Skills in my workspace"
-- Verify: calls `list_skills` (or REST `/v2/skills` fallback)
-- Verify: presents name, project scope, tags, and version per Skill
-- Verify: does NOT crash on Skills with empty `version` OR unstamped `doc` (INN-2836)
+- Verify: calls `list_skills` (or REST `GET /v2/skills` fallback) and **paginates to completion** (cursor-based — `limit`, `starting_after`, `ending_before`)
+- Verify: any user-requested filter (project, tags, name substring) is applied **client-side** after pagination — does NOT pass `project_id`/`tags`/`q` to `list_skills` (the endpoint does not accept them)
+- Verify: presents `display_name`, project scope, `tags`, `path`, and `version` per Skill
+- Verify: does NOT crash on Skills with empty `version` (Snippet→Skill migration leftover) — surfaces as `(unset)`
 
 ### Scenario 2: Create skill (authoring guidance)
 
 - Ask: "Create a Skill called `extract-receipt-fields`"
-- Verify Phase 3: asks for description, tags, project scope (default project-scoped, not workspace-wide)
+- Verify Phase 3: asks for `description`, `tags`, `project_id` (default project-scoped, not workspace-wide), and `path`
 - Verify: rejects or flags descriptions that don't start with "Use when…" or describe a trigger
-- Verify: warns if the proposed body contains `+NEVER+` / "you MUST refuse" prose constraints and recommends an MCP tool gate instead
-- Verify: calls `list_skills` first to check name uniqueness and to surface existing tags
+- Verify: warns if the proposed `instructions` contain `+NEVER+` / "you MUST refuse" prose constraints and recommends an MCP tool gate instead
+- Verify: checks name uniqueness via `POST /v2/skills:checkDisplayNameAvailability` when available, with a paginated `list_skills` scan only as a fallback
+- Verify: `create_skill` payload uses `display_name` and `instructions` (not `name` / `body` / `doc`)
 
 ### Scenario 3: Delete skill — orphan handling
 
 - Provide context: a Skill that's referenced by 2 agents
 - Ask: "Delete this Skill"
-- Verify: calls `search_entities(type: "agent")` and identifies referencing agents BEFORE deletion
-- Verify: warns user about INN-2861 orphan-reference behavior
+- Verify: identifies referencing agents BEFORE deletion (via `search_entities(type: "agent")` plus per-agent `get_agent` fanout if needed)
+- Verify: warns user about the orphan-reference behavior (referencing agents are not auto-pruned by `delete_skill`)
 - Verify: gets explicit consent for delete, then a SECOND explicit consent for the orphan-cleanup pass
 - Verify: never auto-prunes `agent.skills[]` without consent
-- Verify: after consent, calls `get_agent` + `update_agent` per agent and verifies each prune
+- Verify: after consent, calls `get_agent` + `update_agent` per agent, mirroring the existing entry shape (string `skill_id` vs object), and verifies each prune
 - Verify: final report lists what was deleted and what was pruned (or skipped)
 
 ### Scenario 4: Update skill (no blind overwrite)
 
-- Ask: "Update the description of `refund-policy` Skill"
-- Verify: calls `get_skill` first, shows the user the current state
-- Verify: only patches the changed field — does not echo back unchanged tags/body
+- Ask: "Update the description of the `refund-policy` Skill"
+- Verify: calls `get_skill(skill_id=...)` first, shows the user the current state
+- Verify: only patches the changed field — does not echo back unchanged `tags`/`instructions`
+- Verify: does NOT pass `version` in `update_skill` (it's stamped server-side)
 - Verify: confirms the diff with the user before `update_skill`
-- Verify Phase 4: routes body rewrites through `optimize-prompt` (delegates rather than rewriting inline)
+- Verify Phase 4: when rewriting `instructions`, applies clarity heuristics from `optimize-prompt` (does not blindly delegate — Skill `instructions` are typically shorter than a full system prompt)
 
 ---
 

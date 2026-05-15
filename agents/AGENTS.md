@@ -41,7 +41,7 @@ compare-agents: `Run cross-framework agent comparisons using evaluatorq — comp
 
 setup-observability: `Set up orq.ai observability for LLM applications — AI Router proxy, OpenTelemetry, tracing setup, and trace enrichment. Use when setting up tracing, adding the AI Router proxy, integrating OpenTelemetry, auditing existing instrumentation, or enriching traces with metadata. Do NOT use when traces already exist and you need to debug failures (use analyze-trace-failures).`
 
-manage-skills: `Manage orq.ai Skills (the platform entity) end-to-end — list, get, create, update, and delete Skills, plus authoring guidance (naming, description, tags, project scoping), governance (wiring Skills to agents via agent.skills[]), and workarounds for known platform caveats (orphaned references, empty version, +NEVER+ prose anti-pattern). Use when the user wants to create, audit, edit, retire, or wire up orq.ai Skills.`
+manage-skills: `Manage orq.ai Skills (the platform entity, distinct from this repo's code-assistant skills) end-to-end — list, get, create, update, and delete Skills, plus authoring guidance (display_name, description, tags, project_id, path), governance (wiring Skills to agents via agent.skills[] or inlining via {{skill.<key>}}), and workarounds for known platform caveats (orphaned references after delete, empty version on migrated Skills, +NEVER+ prose anti-pattern). Use when the user wants to create, audit, edit, retire, or wire up orq.ai Skills.`
 
 </available_skills>
 
