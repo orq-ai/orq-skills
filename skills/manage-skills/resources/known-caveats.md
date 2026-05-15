@@ -1,84 +1,81 @@
 # Known Caveats and Anti-Patterns
 
-Active platform behaviors and authoring anti-patterns to handle until they're addressed upstream.
+Active platform behaviors and authoring anti-patterns to handle while working with Skills.
 
 ---
 
-## Orphaned `agent.skills[]` references after delete
+## `delete_skill` does not scrub `{{snippet.<display_name>}}` references
 
-**Status:** Manual cleanup required
-
-### Symptom
-
-After calling `delete_skill(skill_id=X)` (or `DELETE /v2/skills/{X}`), agents that referenced the deleted Skill still have its `skill_id` in their `agent.skills[]` array. The platform does not auto-prune.
-
-At runtime, those dangling ids:
-- Are silently ignored in some agent versions (best case)
-- Cause "skill not found" errors in agent runs (worst case)
-
-Either way, the agent config drifts out of sync with reality and the orphan accumulates until manually cleaned.
-
-### Workaround (mandatory)
-
-Always pair `delete_skill` with an orphan-cleanup pass:
-
-```text
-skill_id = <id-just-deleted>
-referencing_agents = <agents whose skills[] contains skill_id>
-# Compute via search_entities + per-agent get_agent fanout if search_entities
-# does not return skills[] in its summary payload (verify in the workspace).
-
-for agent in referencing_agents:
-    current = get_agent(key=agent.key)
-    pruned = [
-        entry for entry in current.skills
-        if extract_skill_id(entry) != skill_id   # mirror whatever shape get_agent returned
-    ]
-    update_agent(key=agent.key, skills=pruned)
-    # verify: re-get and confirm skill_id is gone
-```
-
-Key points:
-- **Identify the references *before* deletion.** Once the Skill is gone, you can't always resolve its `skill_id` back to its `display_name`; record the agents while the Skill still exists.
-- **Mirror the agent's `skills[]` entry shape.** Entries may be plain id strings or objects with `id`/`key` fields depending on the agent schema version. Always pattern-match what `get_agent` returned and write back the same shape.
-- **Verify every `update_agent`.** A failed prune leaves a permanent orphan.
-- **Don't blanket-update all agents** — only those that actually had the reference. Touching unrelated agents inflates the audit log and can race with other authors' edits.
-
-### When this gets fixed
-
-When `delete_skill` returns a response that includes the list of agents it pruned (or the docs explicitly state auto-prune is now in place), the workaround can be removed. Until then, treat the workaround as part of the contract of `delete_skill`.
-
----
-
-## Empty `version` on migrated Skills
-
-**Status:** Handle defensively
+**Status:** Manual reference scan required
 
 ### Symptom
 
-Skills created through the Snippet→Skill migration may have an empty `version` field (empty string or `null`) instead of an integer.
+`delete_skill` removes the Skill entity from the workspace. It does **not** rewrite or null out `{{snippet.<display_name>}}` placeholders that were referencing the deleted Skill from elsewhere — other Skills' `instructions`, deployment prompt templates, agent instructions, etc.
 
-Programmatic readers that assume non-empty / numeric `version` will crash, mis-sort, or skip these Skills entirely.
+After the delete, any leftover `{{snippet.<deleted-name>}}` placeholder will silently render to empty / pass-through (the exact behavior depends on the workspace's template engine and excluded-prefix configuration). The result is a prompt that looks correct but is missing a chunk of intended content. There is no error, no log, no UI banner — just a silently degraded prompt.
 
 ### Workaround
 
-Treat `version` as **optional / valid-when-empty**, not an error.
+**Always run a reference scan before `delete_skill`**, and prefer `enabled: false` (soft disable) as a first step:
 
 ```text
-version = skill.get("version") or None
-# display as "(unset)" or "—" in UI
-# do not crash on string ops; do not assume integer semver
+# 1. Enumerate candidate consumers
+candidates = search_entities()  # prompts, deployments, agents, other Skills
+
+# 2. For each candidate, fetch its full body and look for the placeholder
+references = []
+for entity in candidates:
+    body = fetch_full_body(entity)  # get_deployment / get_agent / get_skill etc.
+    if f"{{{{snippet.{skill.display_name}}}}}" in body:   # case-sensitive substring
+        references.append(entity)
+
+# 3. Show references to the user; default to soft-disable when any are found.
 ```
 
-- **When reading:** coerce empty → `None` (or your sentinel).
-- **When displaying:** show `(unset)` rather than blank — surfaces the migration footprint so users know which Skills came through the migration.
-- **When updating:** never send `version` in `update_skill` — it is stamped server-side. A successful update typically populates `version` going forward.
-- **When filtering / sorting:** never assume `version` is a comparable integer. Treat `None` consistently (last, first, or excluded — pick one and stick to it).
-- **Audit pattern:** paginate `list_skills` and filter where `version is None` to surface the migration backlog so it can be backfilled by a workspace owner.
+Key points:
+- **Match `display_name` exactly.** The placeholder is case-sensitive; substring-matching `display_name` casually can produce false positives if names overlap.
+- **`search_entities` is not exhaustive.** It surfaces what the orq workspace indexes; downstream consumers (external apps that pull prompts via the API and inline them themselves) are invisible to it. If the team has a synced repo of prompts, grep there too.
+- **Soft-disable first.** Setting `enabled: false` is reversible; `delete_skill` is not. Disabling preserves the Skill so a missed reference can be diagnosed by enabling it again.
 
 ### When this gets fixed
 
-When the docs say Snippet-migrated Skills are backfilled with stamped `version` values, the defensive coercion can be removed. Until then, keep it on.
+When the platform either (a) returns a list of identified references on `delete_skill`, or (b) refuses delete while references exist, the workaround can be relaxed to "trust the API." Until then, the reference scan is part of the contract of `delete_skill`.
+
+---
+
+## Renaming `display_name` silently breaks `{{snippet.<display_name>}}` references
+
+**Status:** Same root cause as delete; same workaround
+
+### Symptom
+
+`update_skill` accepts a new `display_name`. The Skill is renamed in place. Every prompt or agent instruction that referenced the old name via `{{snippet.<old-name>}}` continues to render, but now resolves to nothing — the same silent-empty failure mode as a deleted Skill.
+
+### Workaround
+
+Treat a rename as if it were a delete + create:
+
+1. Run the same reference scan as the delete workflow.
+2. Show the user the references and ask whether to:
+   - Cancel the rename, OR
+   - Proceed with the rename AND fan out updates to every reference in the same session, OR
+   - Proceed with the rename AND accept the silent breakage (rare; only OK when the scan was exhaustive and empty).
+
+---
+
+## A2A `AgentCard.skills` is not a list of Skill references
+
+**Status:** Naming overlap — not a bug
+
+### Symptom
+
+When inspecting an agent via `get_agent`, the response includes a `skills[]` array. This is **not** a list of platform Skill ids. It's the AI-generated A2A `AgentCardSkill[]` array — capability descriptors generated from the agent's role/description/instructions for the A2A AgentCard.
+
+### Why it matters
+
+- Don't try to "wire" a platform Skill to an agent by appending its id to `agent.skills[]`. That field is regenerated from the agent manifest and your edit will be lost (or silently ignored).
+- Don't try to "find agents that reference a Skill" by scanning `agent.skills[]` for the Skill's id. The field doesn't carry that information.
+- The actual relationship is **text references** to `{{snippet.<display_name>}}` inside `agent.instructions`. To find consumers, run the reference scan above.
 
 ---
 
