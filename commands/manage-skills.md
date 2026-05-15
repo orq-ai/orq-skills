@@ -1,4 +1,5 @@
 ---
+name: manage-skills
 description: Manage orq.ai Skills — list, get, create, update, disable, or delete Skills (the platform entity, formerly Snippets) and find the prompts/agents that reference them
 argument-hint: [list|get|create|update|disable|delete] [name-or-id]
 allowed-tools: AskUserQuestion, mcp__orq-workspace__list_skills, mcp__orq-workspace__get_skill, mcp__orq-workspace__create_skill, mcp__orq-workspace__update_skill, mcp__orq-workspace__delete_skill, mcp__orq-workspace__search_entities, mcp__orq-workspace__get_deployment, mcp__orq-workspace__get_agent
