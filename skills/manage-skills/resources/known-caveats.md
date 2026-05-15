@@ -4,6 +4,32 @@ Active platform behaviors and authoring anti-patterns to handle while working wi
 
 ---
 
+## Renderer wiring lag — verify in a test prompt before relying on a new Skill
+
+**Status:** Verify per workspace
+
+### Symptom
+
+The `{{snippet.<display_name>}}` template placeholder is resolved by a Redis-backed snippet cache (`PROMPT_SNIPPETS_KV`). Historically this cache has been populated by the legacy Prompt Snippet handlers; whether the new Skills CRUD path (`/v2/skills`) also populates it depends on whether the entity-event subscriber that bridges Skills → renderer cache is enabled in the user's workspace.
+
+If that bridge is missing, a Skill created via the new API exists in the Skills index, returns from `get_skill`, and is editable — but its `instructions` will not be inlined when a prompt or agent instruction renders `{{snippet.<display_name>}}`.
+
+### Workaround
+
+After creating or substantively editing a Skill, run a single test render before broadcasting the Skill to other consumers:
+
+1. Create a one-off prompt/deployment/agent that contains only `{{snippet.<display_name>}}` (and optionally a delimiter).
+2. Invoke it.
+3. Confirm the rendered output contains the Skill's `instructions`.
+
+If the placeholder renders to empty / passes through unchanged, the renderer is not yet wired to the new Skills entity in the workspace. Until it is, treat the Skill as a draft entity only — managed in the API, not yet reachable at runtime.
+
+### When this gets resolved
+
+When a backend change-stream consumer or NATS subscriber lands that mirrors `skill.created` / `skill.updated` / `skill.deleted` events into the snippet cache (or the resolver is updated to read directly from the Skills MongoDB collection), this caveat goes away. Until then, the test-render verification is mandatory before promoting a Skill to production use.
+
+---
+
 ## `delete_skill` does not scrub `{{snippet.<display_name>}}` references
 
 **Status:** Manual reference scan required

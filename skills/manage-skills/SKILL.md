@@ -12,7 +12,16 @@ allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, Task, AskUserQuest
 
 # Manage Skills
 
-You are an **orq.ai Skills lifecycle specialist**. Your job is the full CRUD workflow for the **Skills entity on the orq.ai platform** — historically called *Prompt Snippets* and renamed to *Skills* in the platform-api / Studio. Skills are modular, reusable instruction blocks that get inlined into prompts and agent instructions via the `{{snippet.<key>}}` template placeholder. (The placeholder kept the legacy `snippet.` prefix for backwards compatibility.)
+You are an **orq.ai Skills lifecycle specialist**. Your job is the full CRUD workflow for the **Skills entity on the orq.ai platform** — historically called *Prompt Snippets* and renamed to *Skills* in the platform-api / Studio. Skills are modular, reusable instruction blocks intended to be inlined into prompts and agent instructions via the `{{snippet.<key>}}` template placeholder. (The placeholder kept the legacy `snippet.` prefix for backwards compatibility.)
+
+## Production-readiness notice (verify before relying on this skill)
+
+The Skills entity (`/v2/skills` REST + `*_skill` MCP tools) is delivered on a backend feature branch and may not be available in every workspace yet. **Run the preflight check** in [Prerequisites](#prerequisites) before any phase. If the MCP `*_skill` tools or the REST endpoints are missing, fall back to managing Prompt Snippets via the legacy `/v2/prompts/snippets` endpoints — the *entity is the same*, just under the older name.
+
+Two known wiring gaps to surface to the user when relevant:
+
+1. **Snippet→Skill migration is one-way and asynchronous.** Existing Prompt Snippets are migrated to Skills via a backend cronjob; Skills created via the new API are *not* back-propagated to the snippet representation.
+2. **Renderer wiring may lag.** The `{{snippet.<display_name>}}` template resolver reads from a Redis cache that has historically been populated by the legacy snippet handlers. Whether Skills created through the new API land in that cache depends on whether the entity-event subscriber that bridges them is live in the user's workspace. **Always verify in a test prompt that a newly created Skill actually renders before promoting it to production.**
 
 ## Disambiguation: which "Skill" are we talking about?
 
@@ -111,7 +120,7 @@ tagged_skills  = [s for s in all_skills if "policy" in s.tags]
 | `path` | create / update / read | Finder-style location, e.g. `Default/Skills` or `cs/policies`. Defaults to project's default skill folder. |
 | `project_id` | create / update / read | Optional — omit for workspace-wide. |
 | `instructions` | create / update / read | The actual Skill body — modular markdown that gets inlined wherever the Skill is referenced. |
-| `enabled` | create / update / read | Boolean. When `false`, `{{snippet.<display_name>}}` references resolve to empty/skipped (verify behavior in your workspace). Useful as a soft-disable before delete. |
+| `enabled` | create / update / read | Boolean (default `true`). Whether `{{snippet.<display_name>}}` references for a disabled Skill render to empty/pass-through depends on workspace renderer wiring (verified at the time of writing: the resolver reads from the legacy snippet KV cache, which has no notion of `enabled`; behavior may change). Treat `enabled: false` as a soft-disable signal in the API and audit log; verify the actual render effect before relying on it. |
 | `skill_id` | read / update / delete | Server-generated id. **The list/get response surfaces it as `id`** but the update/delete inputs take it as `skill_id`. Same value. |
 | `workspace_id` | read only | Audit. |
 | `created_at`, `updated_at`, `created_by_id`, `updated_by_id` | read only | Audit metadata. |
@@ -128,9 +137,12 @@ tagged_skills  = [s for s in all_skills if "policy" in s.tags]
 
 ## Prerequisites
 
-- The orq.ai MCP server is connected (run the `quickstart` skill / `/orq:quickstart` to verify in Claude Code, or the equivalent onboarding flow in your assistant)
-- `ORQ_API_KEY` is set
-- The user knows which **project** the Skill belongs to (run `search_directories` if not)
+- The orq.ai MCP server is connected (run the `quickstart` skill / `/orq:quickstart` to verify in Claude Code, or the equivalent onboarding flow in your assistant).
+- `ORQ_API_KEY` is set.
+- The user knows which **project** the Skill belongs to (run `search_directories` if not).
+- **Preflight: confirm the Skills API is available.** Try `list_skills` once at session start. If the tool is unknown OR returns "method not found" against `/v2/skills`, the workspace's backend doesn't expose the new entity yet. Two options:
+  1. Tell the user and fall back to managing the entity under its legacy name (Prompt Snippet via `/v2/prompts/snippets`).
+  2. Ask the user whether to proceed anyway against any partial endpoints they have.
 
 ---
 
